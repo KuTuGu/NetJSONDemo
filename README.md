@@ -43,4 +43,4 @@ npm run build
 
 ### Preview online
 
-[NetJSON Demo]()
+[NetJSON Demo](https://kutugu.github.io/NetJSONDemo/index.html)
