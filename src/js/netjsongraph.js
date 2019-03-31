@@ -503,14 +503,14 @@
                 dateNumberObject[dateNumerFields[i - 1]] = parseInt(dateParseArr[i], 10);
             }
 
-            let carry = hourDiffer;
+            let carry = -hourDiffer;
             for(let i = dateNumerFields.length;i > 0;i--){
                 if(dateNumerFields[i - 1] === "dateYear"){
                     dateNumberObject[dateNumerFields[i - 1]] += carry;
                     break;
                 }
                 else if(dateNumerFields[i - 1] === "dateDay"){
-                    limitBoundary = limitBoundaries.get("dateDay")[dateNumberObject[dateNumerFields[i - 1]] - 1];
+                    limitBoundary = limitBoundaries.get("dateDay")[dateNumberObject["dateMonth"] - 1];
                 }
                 else{
                     limitBoundary = limitBoundaries.get(dateNumerFields[i - 1]);
@@ -519,7 +519,7 @@
                 let calculateResult = dateNumberObject[dateNumerFields[i - 1]] + carry;
 
                 if(dateNumerFields[i - 1] === "dateHour"){
-                    carry = calculateResult < 0 ? -1 : (calculateResult > limitBoundary ? 1 : 0);
+                    carry = calculateResult < 0 ? -1 : (calculateResult >= limitBoundary ? 1 : 0);
                 }
                 else{
                     carry = calculateResult <= 0 ? -1 : (calculateResult > limitBoundary ? 1 : 0);
