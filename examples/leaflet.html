@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>netjsongraph.js: basic example</title>
+    <meta charset="utf-8">
+    <link href="../src/css/netjsongraph.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.4.0/dist/leaflet.css"
+    integrity="sha512-puBpdR0798OZvTTbP4A8Ix/l+A4dHDD0DGqYW6RQ+9jxkRFclaxxQb/SJAWZfWAkuyeQUytO7+7N4QKrDh+drA=="
+    crossorigin=""/>
+    <!-- theme can be easily customized via css -->
+    <link href="../src/css/netjsongraph-theme.css" rel="stylesheet">
+</head>
+<body>
+    <script src="https://unpkg.com/leaflet@1.4.0/dist/leaflet.js"
+    integrity="sha512-QVftwZFqvtRNi0ZyCtsznlKSWOStnDORoefr1enyq5mVL4tmKB3S/EnC3rRJcxCPavG10IcrVGSmPh6Qw5lwrg=="
+    crossorigin=""></script>
+    <script type="text/javascript" src="../lib/echarts.min.js"></script>
+    <script type="text/javascript" src="../src/js/netjsongraph.js"></script>
+    <script type="text/javascript">
+        echarts.netGraphChart("/src/data/netjsongraph.json", {
+            // defaultStyle: false,
+            mapModeRender: true,
+            nodeStyleProperty: {
+                color: 'red',
+                fillColor: '#f03',
+                fillOpacity: 0.5,
+                radius: 8
+            },
+            linkStyleProperty: {
+                color: 'blue',
+                opacity: 0.5,
+                weight: 3
+            },
+        });
+    </script>
+</body>
+</html>

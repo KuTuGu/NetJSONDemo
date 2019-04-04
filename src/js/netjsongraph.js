@@ -43,6 +43,7 @@
          * @param  {bool}              metadata            true        Display NetJSON metadata at startup?
          * @param  {bool}              defaultStyle        true        Does node use default css style? If not, you can income the style with JSON. 
          * @param  {bool}              switchSvgRenderMode true        Can switch Svg mode render?
+         * @param  {bool}              mapModeRender       false       Begin with map mode render?
          * @param  {string}            date                            Convert standard date to browser's time zone date.
          * @param  {object(RegExp)}    dateRegular         /(?:)/      Analyze date format.The exec result must be [date, year, month, day, hour, minute, second, millisecond?]
          * @param  {float}             gravity             0.1         The gravitational strength to the specified numerical value. @see {@link https://github.com/mbostock/d3/wiki/Force-Layout#gravity}
@@ -59,13 +60,13 @@
          * @param  {function}          onClickNode                     Called when a node is clicked
          * @param  {function}          onClickLink                     Called when a link is clicked
          */
-
         opts = echarts._extend({
             metadata: true,
             defaultStyle: true,
             // animationAtStart: true,
             switchSvgRenderMode: true,
-            // scaleExtent: [0.25, 5],
+            mapModeRender: false,
+            scaleExtent: [0.25, 18],
             // charge: -130,
             // linkDistance: 50,
             // linkStrength: 0.2,
@@ -78,8 +79,8 @@
             circleRadius: 8,
             labelDx: 0,
             labelDy: -10,
-            nodeStyleProperty: null,
-            linkStyleProperty: null,
+            nodeStyleProperty: {},
+            linkStyleProperty: {},
             /**
              * @function
              * @name onInit
@@ -108,40 +109,7 @@
              *
              * @param JSONData  {object}
              */
-            prepareData: function(JSONData) {
-                const nodeLinks = {};
-                JSONData.links.map(function(link){
-                    link.lineStyle = opts.linkStyleProperty;
-                    if(!nodeLinks[link.source]){
-                        nodeLinks[link.source] = 0;
-                    }
-                    if(!nodeLinks[link.target]){
-                        nodeLinks[link.target] = 0;
-                    }
-                    nodeLinks[link.source]++;
-                    nodeLinks[link.target]++;
-                });
-                JSONData.nodes.map(function(node){
-                    if(opts.nodeStyleProperty){
-                        node.itemStyle = opts.nodeStyleProperty;
-                    }
-                    else if(!opts.defaultStyle){
-                        node.itemStyle = node.attributes.itemStyle;
-                    }
-                    node.name = node.id;
-                    node.value = node.id;
-                    if(node.attributes && node.attributes.modularity_class){
-                        node.category = String(node.attributes.modularity_class);
-                    }
-                    node.linkCount = nodeLinks[node.id];
-                    if(!JSONData.categories){
-                        JSONData.categories = [];
-                    }
-                    else if(JSONData.categories.indexOf(node.category) === -1){
-                        JSONData.categories.push(node.category)
-                    }
-                });
-            },
+            prepareData: function(JSONData) {},
             /**
              * @function
              * @name onClickNode
@@ -197,22 +165,84 @@
         // Init Callback
         opts.onInit(JSONParam, opts);
 
-        const netGraphContainer = document.getElementById(opts.el) || document.getElementsByTagName("body")[0];    
-        // optionCacheStack store option configuration, nodeLinkOverlay store informationCard DOM.     
-        let optionCacheStack = null, nodeLinkOverlay;
+        const netGraphContainer = document.getElementById(opts.el) || document.getElementsByTagName("body")[0];  
+        // JSONCacheStack store option configuration, nodeLinkOverlay store informationCard DOM.     
+        let JSONCacheStack = null, nodeLinkOverlay;
 
-        if(opts.switchSvgRenderMode){
-            switchRenderMode(JSONParam);
+        // Loading();
+
+        JSONParamParse(JSONParam).then(JSONData => {
+            // JSON Load Callback
+            opts.onLoad(JSONParam, opts);
+
+            opts.prepareData(JSONData);
+            
+            const worker = new Worker("/src/js/netjsonWorker.js");
+            
+            // worker.postMessage({JSONParam, prepareData: opts.prepareData});
+            worker.postMessage({JSONData, mapModeRender: opts.mapModeRender});    
+            
+            worker.addEventListener('error', e => {
+                console.error("Error in element rendering!");
+            });
+            worker.addEventListener('message', e => {
+                JSONCacheStack = e.data;
+    
+                if(opts.metadata){
+                    NetJSONMetadata(JSONCacheStack);
+                }
+    
+                if(opts.switchSvgRenderMode){
+                    switchRenderMode();
+                }
+
+                if(JSONCacheStack.date){
+                    const dateNode = document.createElement("span"),
+                            dateResult = dateParse(JSONCacheStack.date, opts.dateRegular);
+                    dateNode.setAttribute("title", dateResult);
+                    dateNode.setAttribute("class", "njg-date");
+                    dateNode.innerHTML = "Incoming Time: " + dateResult;
+                    netGraphContainer.appendChild(dateNode);
+                }
+
+                // unLoading();
+                
+                NetJSONRender();
+            });
+        })
+
+        /**
+         * @function
+         * @name JSONParamParse
+         *
+         * Perform different operations to call NetJSONDataParse function according to different Param types.
+         * @param  {object|string}  JSONParam   Url or JSONData
+         * 
+         * @return {object}    A promise object of JSONData
+         */
+
+        function JSONParamParse(JSONParam){
+            if(typeof JSONParam === "string"){
+                return fetch(JSONParam, {
+                    method: 'GET',
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Accept": "application/json",
+                    },
+                })
+                .then(response => {
+                    if(response.status === 200){
+                        return response.json()
+                    }
+                })
+                .catch(msg => {
+                    console.error(msg);
+                })
+            }
+            else{
+                return new Promise(JSONParam);
+            }
         }
-        if(opts.date !== ""){
-            const dateNode = document.createElement("span"),
-                  dateResult = dateParse(opts.date, opts.dateRegular);
-            dateNode.setAttribute("title", dateResult);
-            dateNode.setAttribute("class", "njg-date");
-            dateNode.innerHTML = "Incoming Time: " + dateResult;
-            netGraphContainer.appendChild(dateNode);
-        }
-        NetJSONRender(JSONParam);
 
         /**
          * @function
@@ -225,16 +255,7 @@
          */
 
         function NetJSONDataParse(JSONData){
-            // JSON Load Callback
-            opts.onLoad(JSONParam, opts);
-
-            opts.prepareData(JSONData);
-
-            if(opts.metadata){
-                NetJSONMetadata(JSONData);
-            }
-
-            optionCacheStack = {
+            return {
                 title: {
                     text: "NetGraph Demo",
                     link: "",
@@ -296,42 +317,6 @@
                     categories: JSONData.categories.map(category => ({name: category})),
                 }]
             };
-
-            return optionCacheStack;
-        }
-
-        /**
-         * @function
-         * @name JSONParamParse
-         *
-         * Perform different operations to call NetJSONDataParse function according to different Param types.
-         * @param  {object|string}  JSONParam   Url or JSONData
-         * 
-         * @return {object}    A promise object 
-         */
-
-        function JSONParamParse(JSONParam){
-            if(typeof JSONParam === "string"){
-                return fetch(JSONParam, {
-                    method: 'GET',
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Accept": "application/json",
-                    },
-                })
-                .then(response => {
-                    if(response.status === 200){
-                        return response.json()
-                    }
-                })
-                .then(data => NetJSONDataParse(data))
-                .catch(msg => {
-                    console.error(msg);
-                })
-            }
-            else{
-                return new Promise(NetJSONDataParse(JSONParam));
-            }
         }
 
         /**
@@ -342,7 +327,7 @@
          * @param  {object|string}  JSONParam   url or JSONData
          */
 
-        function NetJSONRender(JSONParam, renderMode = "canvas"){
+        function NetJSONRender(renderMode = "canvas"){
             let graphChartContainer = document.getElementById("graphChartContainer");
             if(graphChartContainer){
                 netGraphContainer.removeChild(graphChartContainer);
@@ -351,29 +336,38 @@
             graphChartContainer.setAttribute("id", "graphChartContainer");
             netGraphContainer.appendChild(graphChartContainer);
             
-            const graphChart = echarts.init(graphChartContainer, null, {renderer: renderMode});
-            if(optionCacheStack !== null){
-                presentRenderResult(graphChart, optionCacheStack);
+            if(!opts.mapModeRender){
+                const graphChart = echarts.init(graphChartContainer, null, {renderer: renderMode});
+                graphRenderResult(graphChart, JSONCacheStack);
             }
             else{
-                graphChart.showLoading();
-                JSONParamParse(JSONParam).then(options => {
-                    graphChart.hideLoading();
-                    presentRenderResult(graphChart, options);
-                })
+                const netjsonmap = L.map(graphChartContainer, {renderer: renderMode === "svg" ? L.svg() : L.canvas()}).setView([42.168, 260.536], 8);
+                L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+                    attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+                    maxZoom: opts.scaleExtent[1],
+                    id: 'mapbox.streets',
+                    accessToken: 'pk.eyJ1Ijoia3V0dWd1IiwiYSI6ImNqdHpnb2hqMjM0OG40OHBjbmN3azV1b2UifQ.PBk9TefuYkZlK8SweLAebA'
+                }).addTo(netjsonmap);
+                mapRenderResult(netjsonmap, JSONCacheStack);
             }
         }
 
         /**
          * @function
-         * @name presentRenderResult
+         * @name graphRenderResult
          *
          * Render the final result based on options.
-         * @param  {object}  chart        Echarts
-         * @param  {object}  options      Render dependent configuration
+         * @param  {object}  chart         Echarts
+         * @param  {object}  JSONData      Render dependent configuration
          */
-        function presentRenderResult(chart, options){
-            chart.setOption(options);
+        function graphRenderResult(chart, JSONData){
+            JSONData.links.map(function(link){
+                link.lineStyle = link.lineStyle || opts.linkStyleProperty;
+            })
+            JSONData.nodes.map(function(node){
+                node.itemStyle = node.nodeStyle || opts.nodeStyleProperty;
+            })
+            chart.setOption(NetJSONDataParse(JSONData));
             chart.on("mouseup", function(params){
                 if (params.componentType === "series" && params.seriesType === "graph") {
                     if (params.dataType === "edge") {
@@ -387,6 +381,36 @@
             window.onresize = () => {
                 chart.resize();
             }
+        }
+
+        /**
+         * @function
+         * @name mapRenderResult
+         *
+         * Render the final result based on options.
+         * @param  {object}  map            Echarts
+         * @param  {object}  JSONData       Render dependent configuration
+         */
+        function mapRenderResult(map, JSONData){
+            const nodeElements = [], linkElements = [];
+            const {nodes, links} = JSONData;
+
+            for(let node_id in nodes){
+                if(nodes[node_id].location){
+                    let {location, ...res} = nodes[node_id];
+                    nodeElements.push(L.circleMarker([location.lng, location.lat], Object.assign(nodes[[node_id]].nodeStyle || opts.nodeStyleProperty, {params: res})).bindTooltip(nodeInfo(res)));
+                }
+            }
+            for(let link of links){
+                if(nodes[link.source] && nodes[link.target]){
+                    linkElements.push(L.polyline([
+                        [nodes[link.source].location.lng, nodes[link.source].location.lat],
+                        [nodes[link.target].location.lng, nodes[link.target].location.lat],
+                    ], Object.assign(link.lineStyle || opts.linkStyleProperty, {params: link})).bindTooltip(linkInfo(link)));
+                }
+            }
+            L.featureGroup(nodeElements).on('click', function(e) { map.setView([e.latlng.lat, e.latlng.lng], map.getMaxZoom());opts.onClickNode(e.layer.options.params);}).addTo(map);
+            L.featureGroup(linkElements).on('click', function(e) { map.setView([e.latlng.lat, e.latlng.lng], map.getMaxZoom());opts.onClickLink(e.layer.options.params);}).addTo(map);
         }
 
         /**
@@ -441,10 +465,9 @@
          * @name switchRenderMode
          *
          * Switch rendering mode -- Canvas or Svg, re-render JSONData.
-         * @param  {object|string}  JSONParam   
          */
 
-        function switchRenderMode(JSONParam){
+        function switchRenderMode(){
             const switchWrapper = document.createElement("div"),
                 checkInput = document.createElement("input"),
                 checkLabel = document.createElement("label"),
@@ -459,10 +482,10 @@
             svgMode.innerHTML = "Svg";
             checkInput.onchange = e => {
                 if(e.target.checked){
-                    NetJSONRender(JSONParam, "svg");
+                    NetJSONRender("svg");
                 }
                 else{
-                    NetJSONRender(JSONParam, "canvas");
+                    NetJSONRender("canvas");
                 }
             }
             switchWrapper.appendChild(canvasMode);
