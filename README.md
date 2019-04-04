@@ -16,19 +16,19 @@ Demo roughly reproduces the basic functions of the code base -- [netjsongraph.js
 
 - ***ToolBox***. Used to restore views and save images, there are other features that can be added, such as data views, etc.
 
-- ***Map View Mode***. I have tried to write a [map mode demo](https://github.com/KuTuGu/NetJSONDemo/tree/master/examples/leaflet.html), but compared with the perfect [mesh viewer](https://regensburg.freifunk.net/meshviewer/#/en/graph), there are still many areas for improvement. For example, add some useful small controls for users, display more information panels, etc.I will improve it later.
+- ***Map View Mode***. I have tried to write a [map mode demo](https://kutugu.github.io/NetJSONDemo/examples/leaflet.html), but compared with the perfect [mesh viewer](https://regensburg.freifunk.net/meshviewer/#/en/graph), there are still many areas for improvement. For example, add some useful small controls for users, display more information panels, etc.I will improve it later.
 
 - ***Date Parse***. Convert standard date string param to browser’s time zone date.
 
 For some reason，there are still some features that are not completed or perfect.
 
-- ***Force map algorithm parameters***. Since Encharts encapsulates the force algorithm in the underlying and exposes fewer interfaces, many of the force parameters of d3 cannot be used in Echarts.Also for this reason, the animationAtStart and onEnd functions cannot be implemented.
+- ***Force map algorithm parameters***. Since Encharts encapsulates the force algorithm in the underlying and exposes fewer interfaces, many of the force parameters of d3 cannot be used in Echarts.Also for this reason, the animationAtStart and onEnd functions cannot be implemented.I will rewrite the demo using [sigmaJS](https://github.com/jacomyal/sigma.js/) later.
 
 - ***Canvas zoom and pan***. Also due to packaging reasons, it is impossible to customize. I will rewrite it with a lower level or native method later. And the default mouse drag and drop is only performed in the element area, in order to apply to the entire canvas area, we need to add custom drag and zoom events.
 
 - ***JSONType of NetworkCollection***.The processing is basically similar, just a little more judgment, not writing for the time being.
 
-- ***Data deduplication***.If the input JSON data is duplicated, such as a directed edge problem, the displayed information will be incorrect.The process of data processing is likely to take a lot of time, so we want to optimize performance as much as possible. Since the JSONData format has not been determined, I just provide [an interface file](). In netjsongraphJS, we can use the web worker to reference this file and process the data.
+- ***Data deduplication***.If the input JSON data is duplicated, such as a directed edge problem, the displayed information will be incorrect.The process of data processing is likely to take a lot of time, so we want to optimize performance as much as possible. Since the JSONData format has not been determined, I just provide [an interface file](https://github.com/KuTuGu/NetJSONDemo/blob/master/src/js/netjsonWorker.js). In netjsongraphJS, we can use the web worker to reference this file and process the data.
 
 - ***Update data in real time***. There is no api for testing, so I didn't write the function, but it is very simple to write, just replace http with ws protocol and listen data.
 
@@ -44,5 +44,6 @@ npm run build
 
 ### Preview online
 
-[NetJSONGraph Demo](https://kutugu.github.io/NetJSONDemo/index.html)
-[NetJSONMap Demo](https://kutugu.github.io/NetJSONDemo/index.html)
+[NetJSONGraph Demo](https://kutugu.github.io/NetJSONDemo/examples/echarts.html)
+          
+[NetJSONMap Demo](https://kutugu.github.io/NetJSONDemo/examples/leaflet.html)

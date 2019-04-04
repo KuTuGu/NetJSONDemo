@@ -177,7 +177,7 @@
 
             opts.prepareData(JSONData);
             
-            const worker = new Worker("/src/js/netjsonWorker.js");
+            const worker = new Worker("../src/js/netjsonWorker.js");
             
             // worker.postMessage({JSONParam, prepareData: opts.prepareData});
             worker.postMessage({JSONData, mapModeRender: opts.mapModeRender});    
