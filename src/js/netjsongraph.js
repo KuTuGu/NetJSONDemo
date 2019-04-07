@@ -42,8 +42,7 @@
          * @param  {string}            el                  body        The container element                                  el: "body" [description]
          * @param  {bool}              metadata            true        Display NetJSON metadata at startup?
          * @param  {bool}              defaultStyle        true        Does node use default css style? If not, you can income the style with JSON. 
-         * @param  {bool}              switchSvgRenderMode true        Can switch Svg mode render?
-         * @param  {bool}              mapModeRender       false       Begin with map mode render?
+         * @param  {bool}              svgRender           false       Switch to Svg mode render?
          * @param  {string}            date                            Convert standard date to browser's time zone date.
          * @param  {object(RegExp)}    dateRegular         /(?:)/      Analyze date format.The exec result must be [date, year, month, day, hour, minute, second, millisecond?]
          * @param  {float}             gravity             0.1         The gravitational strength to the specified numerical value. @see {@link https://github.com/mbostock/d3/wiki/Force-Layout#gravity}
@@ -64,8 +63,8 @@
             metadata: true,
             defaultStyle: true,
             // animationAtStart: true,
-            switchSvgRenderMode: true,
-            mapModeRender: false,
+            mapModeRender: false, 
+            svgRender: false,
             scaleExtent: [0.25, 18],
             // charge: -130,
             // linkDistance: 50,
@@ -76,7 +75,7 @@
             gravity: 0.1,
             edgeLength: [20, 60],
             repulsion: 120,
-            circleRadius: 8,
+            circleRadius: 5,
             labelDx: 0,
             labelDy: -10,
             nodeStyleProperty: {},
@@ -176,38 +175,45 @@
             opts.onLoad(JSONParam, opts);
 
             opts.prepareData(JSONData);
+
+            if(opts.metadata){
+                NetJSONMetadata(JSONData);
+            }
+
+            if(JSONData.date){
+                const dateNode = document.createElement("span"),
+                      dateResult = dateParse(JSONData.date, opts.dateRegular);
+                dateNode.setAttribute("title", dateResult);
+                dateNode.setAttribute("class", "njg-date");
+                dateNode.innerHTML = "Incoming Time: " + dateResult;
+                netGraphContainer.appendChild(dateNode);
+            }
             
             const worker = new Worker("../src/js/netjsonWorker.js");
             
-            // worker.postMessage({JSONParam, prepareData: opts.prepareData});
-            worker.postMessage({JSONData, mapModeRender: opts.mapModeRender});    
+            worker.postMessage(JSONData);    
             
             worker.addEventListener('error', e => {
                 console.error("Error in element rendering!");
             });
             worker.addEventListener('message', e => {
                 JSONCacheStack = e.data;
-    
-                if(opts.metadata){
-                    NetJSONMetadata(JSONCacheStack);
-                }
-    
-                if(opts.switchSvgRenderMode){
-                    switchRenderMode();
-                }
 
-                if(JSONCacheStack.date){
-                    const dateNode = document.createElement("span"),
-                            dateResult = dateParse(JSONCacheStack.date, opts.dateRegular);
-                    dateNode.setAttribute("title", dateResult);
-                    dateNode.setAttribute("class", "njg-date");
-                    dateNode.innerHTML = "Incoming Time: " + dateResult;
-                    netGraphContainer.appendChild(dateNode);
+                if(opts.metadata){
+                    if(JSONData.nodes.length !== JSONCacheStack.nodes.length){
+                        document.getElementById("metadataNodesLength").innerHTML = JSONCacheStack.nodes.length;
+                    }
+                    if(JSONData.links.length !== JSONCacheStack.links.length){
+                        document.getElementById("metadataLinksLength").innerHTML = JSONCacheStack.links.length;
+                    }
                 }
 
                 // unLoading();
                 
                 NetJSONRender();
+
+                addViewEye();
+                switchRenderMode();
             });
         })
 
@@ -323,11 +329,10 @@
          * @function
          * @name NetJSONRender
          *
-         * Perform different operations to call NetJSONDataParse function according to different Param types.
-         * @param  {object|string}  JSONParam   url or JSONData
+         * Perform different renderings according to different types.
          */
 
-        function NetJSONRender(renderMode = "canvas"){
+        function NetJSONRender(){
             let graphChartContainer = document.getElementById("graphChartContainer");
             if(graphChartContainer){
                 netGraphContainer.removeChild(graphChartContainer);
@@ -337,18 +342,84 @@
             netGraphContainer.appendChild(graphChartContainer);
             
             if(!opts.mapModeRender){
-                const graphChart = echarts.init(graphChartContainer, null, {renderer: renderMode});
+                const graphChart = echarts.init(graphChartContainer, null, {renderer: opts.svgRender ? "svg" : "canvas"});
                 graphRenderResult(graphChart, JSONCacheStack);
             }
             else{
-                const netjsonmap = L.map(graphChartContainer, {renderer: renderMode === "svg" ? L.svg() : L.canvas()}).setView([42.168, 260.536], 8);
-                L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
-                    attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
-                    maxZoom: opts.scaleExtent[1],
-                    id: 'mapbox.streets',
-                    accessToken: 'pk.eyJ1Ijoia3V0dWd1IiwiYSI6ImNqdHpnb2hqMjM0OG40OHBjbmN3azV1b2UifQ.PBk9TefuYkZlK8SweLAebA'
+                const netjsonmap = L.map(graphChartContainer, {renderer: opts.svgRender ? L.svg() : L.canvas()}).setView([42.168, 260.536], 8);
+                L.easyPrint({
+                    title: 'Awesome print button',
+                    position: 'bottomleft',
+                    exportOnly: true,
+                    sizeModes: ['Current', 'A4Portrait', 'A4Landscape']
                 }).addTo(netjsonmap);
-                mapRenderResult(netjsonmap, JSONCacheStack);
+
+                let editableLayers = new L.FeatureGroup(),
+                    MyCustomMarker = L.Icon.extend({
+                        options: {
+                            shadowUrl: null,
+                            iconAnchor: new L.Point(12, 12),
+                            iconUrl: '../lib/images/marker-icon.png'
+                        }
+                    }),
+                    options = {
+                        position: 'topleft',
+                        draw: {
+                            polyline: {
+                                shapeOptions: {
+                                    color: '#f357a1',
+                                    weight: 3
+                                }
+                            },
+                            polygon: {
+                                allowIntersection: false, // Restricts shapes to simple polygons
+                                drawError: {
+                                    color: '#e1e100', // Color the shape will turn when intersects
+                                    message: '<strong>Oh snap!<strong> you can\'t draw that!' // Message that will show when intersect
+                                },
+                                shapeOptions: {
+                                    color: '#bada55'
+                                }
+                            },
+                            circle: true, // Turns off this drawing tool
+                            rectangle: {
+                                shapeOptions: {
+                                    clickable: false
+                                }
+                            },
+                            marker: {
+                                icon: new MyCustomMarker()
+                            }
+                        },
+                        edit: {
+                            featureGroup: editableLayers, //REQUIRED!!
+                            remove: true
+                        }
+                    };
+                netjsonmap.addLayer(editableLayers);
+                netjsonmap.addControl(new L.Control.Draw(options));
+                netjsonmap.on(L.Draw.Event.CREATED, function (e) {
+                    var type = e.layerType,
+                        layer = e.layer;
+                
+                    if (type === 'marker') {
+                        layer.bindPopup('A popup!');
+                    }
+                
+                    editableLayers.addLayer(layer);
+                });
+
+                if(!opts.viewIndoormap){
+                    opts.leafLeyLayers = [];
+                    opts.leafLeyLayers.push(L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+                        attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+                        maxZoom: opts.scaleExtent[1],
+                        id: 'mapbox.streets',
+                        accessToken: 'pk.eyJ1Ijoia3V0dWd1IiwiYSI6ImNqdHpnb2hqMjM0OG40OHBjbmN3azV1b2UifQ.PBk9TefuYkZlK8SweLAebA'
+                    }).addTo(netjsonmap));
+                    mapRenderResult(netjsonmap, JSONCacheStack);
+                }
+                viewInputImage(netjsonmap);
             }
         }
 
@@ -363,10 +434,21 @@
         function graphRenderResult(chart, JSONData){
             JSONData.links.map(function(link){
                 link.lineStyle = link.lineStyle || opts.linkStyleProperty;
-            })
+            });
             JSONData.nodes.map(function(node){
                 node.itemStyle = node.nodeStyle || opts.nodeStyleProperty;
-            })
+                node.name = node.name || node.id;
+                node.value = node.value || node.name;
+                if(node.category){
+                    node.category = String(node.category);
+                }
+                if(!JSONData.categories){
+                    JSONData.categories = [];
+                }
+                if(JSONData.categories.indexOf(node.category) === -1){
+                    JSONData.categories.push(node.category)
+                }
+            });
             chart.setOption(NetJSONDataParse(JSONData));
             chart.on("mouseup", function(params){
                 if (params.componentType === "series" && params.seriesType === "graph") {
@@ -392,13 +474,13 @@
          * @param  {object}  JSONData       Render dependent configuration
          */
         function mapRenderResult(map, JSONData){
-            const nodeElements = [], linkElements = [];
-            const {nodes, links} = JSONData;
+            const nodeElements = [], linkElements = [], drawElements = [];
+            let {flatNodes: nodes, links} = JSONData;
 
             for(let node_id in nodes){
                 if(nodes[node_id].location){
                     let {location, ...res} = nodes[node_id];
-                    nodeElements.push(L.circleMarker([location.lng, location.lat], Object.assign(nodes[[node_id]].nodeStyle || opts.nodeStyleProperty, {params: res})).bindTooltip(nodeInfo(res)));
+                    nodeElements.push(L.circleMarker([location.lng, location.lat], Object.assign(nodes[[node_id]].nodeStyle || opts.nodeStyleProperty, {params: JSON.parse(JSON.stringify(res))})).bindTooltip(nodeInfo(res)));
                 }
             }
             for(let link of links){
@@ -406,11 +488,12 @@
                     linkElements.push(L.polyline([
                         [nodes[link.source].location.lng, nodes[link.source].location.lat],
                         [nodes[link.target].location.lng, nodes[link.target].location.lat],
-                    ], Object.assign(link.lineStyle || opts.linkStyleProperty, {params: link})).bindTooltip(linkInfo(link)));
+                    ], Object.assign(link.lineStyle || opts.linkStyleProperty, {params: JSON.parse(JSON.stringify(link))})).bindTooltip(linkInfo(link)));
                 }
             }
-            L.featureGroup(nodeElements).on('click', function(e) { map.setView([e.latlng.lat, e.latlng.lng], map.getMaxZoom());opts.onClickNode(e.layer.options.params);}).addTo(map);
-            L.featureGroup(linkElements).on('click', function(e) { map.setView([e.latlng.lat, e.latlng.lng], map.getMaxZoom());opts.onClickLink(e.layer.options.params);}).addTo(map);
+            drawElements.push(L.featureGroup(nodeElements).on('click', function(e) { map.setView([e.latlng.lat, e.latlng.lng], map.getMaxZoom());opts.onClickNode(e.layer.options.params);}));
+            drawElements.push(L.featureGroup(linkElements).on('click', function(e) { map.setView([e.latlng.lat, e.latlng.lng]);opts.onClickLink(e.layer.options.params);}));
+            opts.leafLeyLayers.push(L.featureGroup(drawElements).addTo(map));
         }
 
         /**
@@ -439,8 +522,8 @@
                     html += "<p><b>" + attr + "</b>: <span>" + metadata[attr] + "</span></p>";
                 }
             }
-            html += "<p><b>nodes</b>: <span>" + metadata.nodes.length + "</span></p>";
-            html += "<p><b>links</b>: <span>" + metadata.links.length + "</span></p>";
+            html += "<p><b>nodes</b>: <span id='metadataNodesLength'>" + metadata.nodes.length + "</span></p>";
+            html += "<p><b>links</b>: <span id='metadataLinksLength'>" + metadata.links.length + "</span></p>";
 
             const metadataDiv = document.createElement("div"),
                 innerDiv = document.createElement("div"),
@@ -481,18 +564,92 @@
             canvasMode.innerHTML = "Canvas";
             svgMode.innerHTML = "Svg";
             checkInput.onchange = e => {
-                if(e.target.checked){
-                    NetJSONRender("svg");
-                }
-                else{
-                    NetJSONRender("canvas");
-                }
+                opts.svgRender = e.target.checked;    
+                NetJSONRender();
+            }
+            if(opts.svgRender){
+                checkInput.checked = true;
             }
             switchWrapper.appendChild(canvasMode);
             switchWrapper.appendChild(checkInput);
             switchWrapper.appendChild(checkLabel);
             switchWrapper.appendChild(svgMode);
             netGraphContainer.appendChild(switchWrapper);
+        }
+
+        /**
+         * @function
+         * @name addViewEye
+         *
+         * Add viewEye icon to change graph or map mode.
+         */
+
+        function addViewEye(){
+            let selectIconDiv = document.createElement("div"),
+                iconEye = document.createElement("span");
+            iconEye.setAttribute("class", "iconfont icon-eye");
+            selectIconDiv.setAttribute("class", "njg-selectIcon");
+            selectIconDiv.appendChild(iconEye);
+            netGraphContainer.appendChild(selectIconDiv);
+            
+            iconEye.onclick = () => {
+                opts.mapModeRender = !opts.mapModeRender;
+                opts.viewIndoormap = false;
+                NetJSONRender();
+            }
+        }
+
+        /**
+         * @function
+         * @name viewInputImage
+         *
+         * Add viewEye icon to change graph or map mode.
+         * 
+         * @param {object}   netjsonmap
+         */
+
+        function viewInputImage(netjsonmap){
+            let imgInput = document.getElementById("njg-indoorImgInput");
+            if(opts.viewIndoormap){
+                presentIndoormap(imgInput.files[0]);
+            }
+            else if(!imgInput){
+                imgInput = document.createElement("input");
+                imgInput.setAttribute("type", "file");
+                imgInput.setAttribute("accept", "image/*");
+                imgInput.setAttribute("id", "njg-indoorImgInput");
+                netGraphContainer.appendChild(imgInput);
+            }
+            imgInput.onchange = e => {
+                presentIndoormap(e.target.files[0]);
+            }
+
+            function presentIndoormap(img){
+                let readImg = new FileReader(),
+                    tempImage = new Image();
+                readImg.readAsDataURL(img);
+                readImg.onload = e => {
+                    tempImage.src = e.target.result;
+                    tempImage.onload = () => {
+                        let southWest, northEast, bounds;
+                        if(tempImage.width / tempImage.height > window.innerWidth / window.innerHeight){
+                            southWest = netjsonmap.layerPointToLatLng(L.point(0, window.innerHeight - (window.innerHeight - window.innerWidth * tempImage.height / tempImage.width) / 2 + 60)),
+                            northEast = netjsonmap.layerPointToLatLng(L.point(window.innerWidth, (window.innerHeight - window.innerWidth * tempImage.height / tempImage.width) / 2 + 60));
+                            bounds = new L.LatLngBounds(southWest, northEast);
+                        }
+                        else{
+                            southWest = netjsonmap.layerPointToLatLng(L.point((window.innerWidth - window.innerHeight * tempImage.width / tempImage.height) / 2, window.innerHeight + 60)),
+                            northEast = netjsonmap.layerPointToLatLng(L.point(window.innerWidth - (window.innerWidth - window.innerHeight * tempImage.width / tempImage.height) / 2, 60));
+                            bounds = new L.LatLngBounds(southWest, northEast);
+                        }
+                        for(let layer of opts.leafLeyLayers){
+                            netjsonmap.removeLayer(layer);
+                        }
+                        opts.leafLeyLayers.push(L.imageOverlay(tempImage.src, bounds).addTo(netjsonmap));
+                        opts.viewIndoormap = true;
+                    }
+                }
+            }
         }
 
         /**

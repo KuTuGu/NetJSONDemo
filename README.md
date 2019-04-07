@@ -2,6 +2,7 @@
 
 ![img](/src/data/netjsongraph.png)
 ![img](/src/data/netjsonmap.png)
+![img](/src/data/netjsonindoormap.png)
 Demo roughly reproduces the basic functions of the code base -- [netjsongraph.js](https://github.com/netjson/netjsongraph.js) using [EchartsJS](https://github.com/apache/incubator-echarts) and [LeafletJS](https://github.com/Leaflet/Leaflet). In addition, with the built-in features of the Echarts library, some small features have been added.
 
 - ***Add loading status***. When loading data, display loading status, avoiding browser white screen.We can also do something to prompt clearer, such as pop-up box prompt when data fetch fails.
@@ -43,7 +44,5 @@ npm run build
 ```
 
 ### Preview online
-
-[NetJSONGraph Demo](https://kutugu.github.io/NetJSONDemo/examples/echarts.html)
           
-[NetJSONMap Demo](https://kutugu.github.io/NetJSONDemo/examples/leaflet.html)
+[NetJSON Demo](https://kutugu.github.io/NetJSONDemo/examples/netjson.html)

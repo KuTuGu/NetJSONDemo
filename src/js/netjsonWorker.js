@@ -1,60 +1,57 @@
 //Different renderings require different data formats
 self.addEventListener("message", e => {
-    let {JSONData, mapModeRender} = e.data;
-    JSONData.flatNodes = {};
-    JSONData.nodes.map(function(node){
-        JSONData.flatNodes[node.id] = node;
-    });
-    if(mapModeRender){
-        mapJSONData(JSONData);
-    }
-    else{
-        graphJSONData(JSONData);
-    }
-    JSONData.flatNodes = undefined;
-    postMessage(JSONData);
+    dealJSONData(e.data);
+    postMessage(e.data);
     close();
 });
 
 /**
  * @function
- * @name graphJSONData
+ * @name dealJSONData
  *
  * Generate the data needed for graph rendering
  * @param  {object}  JSONData     NetJSONData
  * 
  */
-function graphJSONData(JSONData){
+function dealJSONData(JSONData){
+    addFlatNodes(JSONData);
+    deleteUnlessLinks(JSONData);
     addNodeLinks(JSONData);
+}
+
+/**
+ * @function
+ * @name addFlatNodes
+ *
+ * Generate the data needed for graph rendering
+ * @param  {object}  JSONData     NetJSONData
+ * 
+ */
+function addFlatNodes(JSONData){
+    JSONData.flatNodes = {};
     JSONData.nodes.map(function(node){
-        node.name = node.name || node.id;
-        node.value = node.value || node.name;
-        if(node.category){
-            node.category = String(node.category);
-        }
-        if(!JSONData.categories){
-            JSONData.categories = [];
-        }
-        if(JSONData.categories.indexOf(node.category) === -1){
-            JSONData.categories.push(node.category)
+        if(node.id){
+            JSONData.flatNodes[node.id] = JSON.parse(JSON.stringify(node));
         }
     });
 }
 
 /**
  * @function
- * @name mapJSONData
+ * @name deleteUnlessLinks
  *
- * Generate the data needed for map rendering
+ * Generate the data needed for graph rendering
  * @param  {object}  JSONData     NetJSONData
  * 
  */
-function mapJSONData(JSONData){
-    addNodeLinks(JSONData);
-    let nodesLength = JSONData.nodes.length;
-    JSONData.nodes = JSONData.flatNodes;
-    JSONData.nodes.length = nodesLength;
+function deleteUnlessLinks(JSONData){
+    for(let i = JSONData.links.length - 1;i >= 0;i--){
+        if(!(JSONData.flatNodes[JSONData.links[i].source] && JSONData.flatNodes[JSONData.links[i].target])){
+            JSONData.links.splice(i, 1);
+        }
+    }
 }
+
 
 /**
  * @function

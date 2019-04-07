@@ -82,3 +82,13 @@ p {
     overflow: hidden; 
     z-index: 0;
 }
+
+#njg-indoorImgInput{
+    position: absolute;
+    right: 70px;
+    top: 20px;
+    width: 150px;
+    z-index: 1;
+}
+  
+  
