@@ -43,7 +43,7 @@
          * @param  {bool}              metadata            true        Display NetJSON metadata at startup?
          * @param  {bool}              defaultStyle        true        Does node use default css style? If not, you can income the style with JSON. 
          * @param  {bool}              svgRender           false       Switch to Svg mode render?
-         * @param  {string}            date                            Convert standard date to browser's time zone date.
+         * @param  {string}            listenUpdateUrl     ""          listen the url to update JSONData.
          * @param  {object(RegExp)}    dateRegular         /(?:)/      Analyze date format.The exec result must be [date, year, month, day, hour, minute, second, millisecond?]
          * @param  {float}             gravity             0.1         The gravitational strength to the specified numerical value. @see {@link https://github.com/mbostock/d3/wiki/Force-Layout#gravity}
          * @param  {int|array}         edgeLength          [20, 60]    The distance between the two nodes on the side, this distance will also be affected by repulsion. @see {@link https://echarts.apache.org/option.html#series-graph.force.edgeLength}
@@ -188,33 +188,46 @@
                 dateNode.innerHTML = "Incoming Time: " + dateResult;
                 netGraphContainer.appendChild(dateNode);
             }
-            
-            const worker = new Worker("../src/js/netjsonWorker.js");
-            
-            worker.postMessage(JSONData);    
-            
-            worker.addEventListener('error', e => {
-                console.error("Error in element rendering!");
-            });
-            worker.addEventListener('message', e => {
-                JSONCacheStack = e.data;
 
-                if(opts.metadata){
-                    if(JSONData.nodes.length !== JSONCacheStack.nodes.length){
+            dealDataByWorker(JSONData);
+            addViewEye();
+            switchRenderMode();
+
+            const socket = io(opts.listenUpdateUrl || 'http://localhost:8078');
+            socket.on('connect', function () {
+                console.log('client connect')
+            });
+            socket.on('disconnect', function(){
+                console.log('client disconnected.')
+            });
+            socket.on('netjsonChange', data => {
+                if(data.date !== JSONCacheStack.date){
+                    document.getElementsByClassName("njg-date")[0].innerHTML = "Incoming Time: " + dateParse(data.date, opts.dateRegular);
+                }
+                dealDataByWorker(data)}
+            );
+            
+            function dealDataByWorker(JSONData){
+                let worker = new Worker("../src/js/netjsonWorker.js");
+                
+                worker.postMessage(JSONData);    
+                
+                worker.addEventListener('error', e => {
+                    console.error("Error in element rendering!");
+                });
+                worker.addEventListener('message', e => {
+                    JSONCacheStack = e.data;
+    
+                    if(opts.metadata){
                         document.getElementById("metadataNodesLength").innerHTML = JSONCacheStack.nodes.length;
-                    }
-                    if(JSONData.links.length !== JSONCacheStack.links.length){
                         document.getElementById("metadataLinksLength").innerHTML = JSONCacheStack.links.length;
                     }
-                }
-
-                // unLoading();
-                
-                NetJSONRender();
-
-                addViewEye();
-                switchRenderMode();
-            });
+    
+                    // unLoading();
+                    
+                    NetJSONRender();
+                });
+            }
         })
 
         /**
@@ -346,13 +359,18 @@
                 graphRenderResult(graphChart, JSONCacheStack);
             }
             else{
-                const netjsonmap = L.map(graphChartContainer, {renderer: opts.svgRender ? L.svg() : L.canvas()}).setView([42.168, 260.536], 8);
+                if(!opts.netjsonmap){
+                    opts.netjsonmap = L.map(graphChartContainer, {renderer: opts.svgRender ? L.svg() : L.canvas()}).setView([42.168, 260.536], 8);
+                }
+                else{
+                    opts.netjsonmap = L.map(graphChartContainer, {renderer: opts.svgRender ? L.svg() : L.canvas()}).setView(opts.netjsonmap.getCenter(), opts.netjsonmap.getZoom());
+                }
                 L.easyPrint({
                     title: 'Awesome print button',
                     position: 'bottomleft',
                     exportOnly: true,
                     sizeModes: ['Current', 'A4Portrait', 'A4Landscape']
-                }).addTo(netjsonmap);
+                }).addTo(opts.netjsonmap);
 
                 let editableLayers = new L.FeatureGroup(),
                     MyCustomMarker = L.Icon.extend({
@@ -396,9 +414,9 @@
                             remove: true
                         }
                     };
-                netjsonmap.addLayer(editableLayers);
-                netjsonmap.addControl(new L.Control.Draw(options));
-                netjsonmap.on(L.Draw.Event.CREATED, function (e) {
+                opts.netjsonmap.addLayer(editableLayers);
+                opts.netjsonmap.addControl(new L.Control.Draw(options));
+                opts.netjsonmap.on(L.Draw.Event.CREATED, function (e) {
                     var type = e.layerType,
                         layer = e.layer;
                 
@@ -416,10 +434,10 @@
                         maxZoom: opts.scaleExtent[1],
                         id: 'mapbox.streets',
                         accessToken: 'pk.eyJ1Ijoia3V0dWd1IiwiYSI6ImNqdHpnb2hqMjM0OG40OHBjbmN3azV1b2UifQ.PBk9TefuYkZlK8SweLAebA'
-                    }).addTo(netjsonmap));
-                    mapRenderResult(netjsonmap, JSONCacheStack);
+                    }).addTo(opts.netjsonmap));
+                    mapRenderResult(opts.netjsonmap, JSONCacheStack);
                 }
-                viewInputImage(netjsonmap);
+                viewInputImage(opts.netjsonmap);
             }
         }
 
@@ -493,7 +511,7 @@
             }
             drawElements.push(L.featureGroup(nodeElements).on('click', function(e) { map.setView([e.latlng.lat, e.latlng.lng], map.getMaxZoom());opts.onClickNode(e.layer.options.params);}));
             drawElements.push(L.featureGroup(linkElements).on('click', function(e) { map.setView([e.latlng.lat, e.latlng.lng]);opts.onClickLink(e.layer.options.params);}));
-            opts.leafLeyLayers.push(L.featureGroup(drawElements).addTo(map));
+            L.featureGroup(drawElements).addTo(map);
         }
 
         /**
@@ -647,6 +665,10 @@
                         }
                         opts.leafLeyLayers.push(L.imageOverlay(tempImage.src, bounds).addTo(netjsonmap));
                         opts.viewIndoormap = true;
+
+                        // netjsonmap.on('click', e=>{
+                        //     console.log(e)
+                        // })
                     }
                 }
             }

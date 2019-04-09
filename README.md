@@ -5,36 +5,7 @@
 ![img](/src/data/netjsonindoormap.png)
 Demo roughly reproduces the basic functions of the code base -- [netjsongraph.js](https://github.com/netjson/netjsongraph.js) using [EchartsJS](https://github.com/apache/incubator-echarts) and [LeafletJS](https://github.com/Leaflet/Leaflet). In addition, with the built-in features of the Echarts library, some small features have been added.
 
-- ***Add loading status***. When loading data, display loading status, avoiding browser white screen.We can also do something to prompt clearer, such as pop-up box prompt when data fetch fails.
-
-- ***Hover or click trigger information***.Highlight the target element and the node or path associated with it when hover, showing informations about the target element.Display the data panel of the target element when clicked.
-
-- ***Switch rendering mode***. Canvas and Svg have different advantages. So I added a button to switch between two rendering modes.
-
-- ***Browser window zoom***. Listen for events, automatically re-render when the browser window is zoomed.
-
-- ***Element classification***. Different elements can be categorized, and small controls are added for quick display and hiding category.
-
-- ***ToolBox***. Used to restore views and save images, there are other features that can be added, such as data views, etc.
-
-- ***Map View Mode***. I have tried to write a [map mode demo](https://kutugu.github.io/NetJSONDemo/examples/leaflet.html), but compared with the perfect [mesh viewer](https://regensburg.freifunk.net/meshviewer/#/en/graph), there are still many areas for improvement. For example, add some useful small controls for users, display more information panels, etc.I will improve it later.
-
-- ***Date Parse***. Convert standard date string param to browser’s time zone date.
-
-For some reason，there are still some features that are not completed or perfect.
-
-- ***Force map algorithm parameters***. Since Encharts encapsulates the force algorithm in the underlying and exposes fewer interfaces, many of the force parameters of d3 cannot be used in Echarts.Also for this reason, the animationAtStart and onEnd functions cannot be implemented.I will rewrite the demo using [sigmaJS](https://github.com/jacomyal/sigma.js/) later.
-
-- ***Canvas zoom and pan***. Also due to packaging reasons, it is impossible to customize. I will rewrite it with a lower level or native method later. And the default mouse drag and drop is only performed in the element area, in order to apply to the entire canvas area, we need to add custom drag and zoom events.
-
-- ***JSONType of NetworkCollection***.The processing is basically similar, just a little more judgment, not writing for the time being.
-
-- ***Data deduplication***.If the input JSON data is duplicated, such as a directed edge problem, the displayed information will be incorrect.The process of data processing is likely to take a lot of time, so we want to optimize performance as much as possible. Since the JSONData format has not been determined, I just provide [an interface file](https://github.com/KuTuGu/NetJSONDemo/blob/master/src/js/netjsonWorker.js). In netjsongraphJS, we can use the web worker to reference this file and process the data.
-
-- ***Update data in real time***. There is no api for testing, so I didn't write the function, but it is very simple to write, just replace http with ws protocol and listen data.
-
-
-### Local debugging
+### Install
 
 ```
 npm install
@@ -43,6 +14,99 @@ npm run start
 npm run build
 ```
 
-### Preview online
-          
+### Arguments
+
+netjsongraph.js accepts two arguments.
+
+- url (required, string): URL to fetch the JSON data from
+- options (optional, object): custom options described below
+    - el: container element, defaults to "body"
+    - metadata: whether to show NetJSON NetworkGraph metadata or not, defaults to true
+    - defaultStyle: whether to use the default style or not, defaults to true
+    - svgRender: switch to Svg mode render?
+    - listenUpdateUrl: listen the url to update JSONData.
+    - scaleExtent: see d3 Zoom scaleExtent, defaults to [0.25, 5]
+    - dateRegular: analyze date format.The exec result must be [date, year, month, day, hour, minute, second, millisecond?]
+    - gravity: see d3 Zoom gravity, defaults to 0.1
+    - edgeLength: the distance between the two nodes on the side, this distance will also be affected by repulsion
+    - repulsion: the repulsion factor between nodes.
+    - circleRadius: the radius of circles (nodes) in pixel
+    - labelDx: node labels offsetX(distance on x axis) in graph.
+    - labelDy: node labels offsetY(distance on y axis) in graph.
+    - nodeClassProperty: if specified, nodes will have an additional CSS class that depends on the value of a specific NetJSON node property
+    - linkClassProperty: if specified, links will have an additional CSS class that depends on the value of a specific NetJSON link property
+    - onInit: callback function executed on initialization, params: url and options
+    - onLoad: callback function executed after data has been loaded, params: url and options
+    - onEnd: callback function executed when initial animation is complete, params: url and options
+    - prepareData: function used to convert NetJSON NetworkGraph to the javascript data structured used internally, you won't need to modify it in most cases
+    - onClickNode: function called when a node is clicked, you can customize it if you need
+    - onClickLink: function called when a link is clicked, you can customize it if you need
+
+### Real Time Update
+
+Since there isn't a real server for interaction, I only wrote one example for test. I built a simple local server using the express framework and nodeJS. After a period of time, the JSON change event is triggered, and the data view in the demo is also changed.
+
+The code to build a local server can be found [here](https://github.com/KuTuGu/NetJSONDemo/tree/master/src/data/netjsonnode/).
+
+Execute in this directory：
+```
+npm install
+
+node index.js
+```
+
+Then open the demo page, you will find that the nodes and links in the view change after 5 seconds.
+
+This is just a demo, you can also customize other events to trigger data changes.
+
+### Example Usage
+
+```
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>netjsongraph.js: basic example</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.4.0/dist/leaflet.css"
+    integrity="sha512-puBpdR0798OZvTTbP4A8Ix/l+A4dHDD0DGqYW6RQ+9jxkRFclaxxQb/SJAWZfWAkuyeQUytO7+7N4QKrDh+drA=="
+    crossorigin=""/>
+    <!-- theme can be easily customized via css -->
+    <link href="../src/css/netjsongraph-theme.css" rel="stylesheet">
+    <link href="../src/css/netjsongraph.css" rel="stylesheet">
+    <link href="../lib/leaflet-draw.css" rel="stylesheet">
+</head>
+<body>
+    <script src="https://unpkg.com/leaflet@1.4.0/dist/leaflet.js"
+    integrity="sha512-QVftwZFqvtRNi0ZyCtsznlKSWOStnDORoefr1enyq5mVL4tmKB3S/EnC3rRJcxCPavG10IcrVGSmPh6Qw5lwrg=="
+    crossorigin=""></script>
+    <script src="../lib/leaflet-mapDownload.js"></script>
+    <script src="../lib/leaflet-draw.js"></script>
+    <script type="text/javascript" src="../lib/echarts.min.js"></script>
+    <script type="text/javascript" src="../lib/socket.io.js"></script>
+    <script type="text/javascript" src="../src/js/netjsongraph.js"></script>
+    <script type="text/javascript">
+        echarts.netGraphChart("../src/data/netjson.json");
+    </script>
+</body>
+</html>
+```
+
+### Different Demos
+
 [NetJSON Demo](https://kutugu.github.io/NetJSONDemo/examples/netjson.html)
+
+### How to migrate the previous version
+
+Because of the different libraries used, some of the parameters of the previous version may disappear, especially some of the parameters of the Force map algorithm.But you don't have to delete them, it doesn't have a negative impact.
+
+These parameters have been removed for this demo：
+- animationAtStart: true
+- charge: -130,                                
+- linkStrength: 0.2,
+- friction: 0.9,  // d3 default
+- chargeDistance: Infinity,  // d3 default
+- theta: 0.8,  // d3 default
+
+If you want to update the data in real time, you only need to listen to a port number on the server, passing in the url as the parameter -- listenUpdateUrl.
+Of course you have to customize the trigger event -- "netjsonChange".
+          
