@@ -193,19 +193,21 @@
             addViewEye();
             switchRenderMode();
 
-            const socket = io(opts.listenUpdateUrl || 'http://localhost:8078');
-            socket.on('connect', function () {
-                console.log('client connect')
-            });
-            socket.on('disconnect', function(){
-                console.log('client disconnected.')
-            });
-            socket.on('netjsonChange', data => {
-                if(data.date !== JSONCacheStack.date){
-                    document.getElementsByClassName("njg-date")[0].innerHTML = "Incoming Time: " + dateParse(data.date, opts.dateRegular);
-                }
-                dealDataByWorker(data)}
-            );
+            if(opts.listenUpdateUrl){
+                const socket = io(opts.listenUpdateUrl);
+                socket.on('connect', function () {
+                    console.log('client connect')
+                });
+                socket.on('disconnect', function(){
+                    console.log('client disconnected.')
+                });
+                socket.on('netjsonChange', data => {
+                    if(data.date !== JSONCacheStack.date){
+                        document.getElementsByClassName("njg-date")[0].innerHTML = "Incoming Time: " + dateParse(data.date, opts.dateRegular);
+                    }
+                    dealDataByWorker(data)}
+                );
+            }
             
             function dealDataByWorker(JSONData){
                 let worker = new Worker("../src/js/netjsonWorker.js");
