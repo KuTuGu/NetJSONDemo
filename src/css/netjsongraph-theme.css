@@ -14,6 +14,9 @@
     right: 10px;
     top: 10px;
     width: auto;
+    display: none;
+    position: absolute;
+    z-index: 10;
 }
 
 .njg-metadata{

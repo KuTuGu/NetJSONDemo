@@ -21,12 +21,6 @@ html, body{
     text-anchor: middle;
 }
 
-.njg-overlay{
-    display: none;
-    position: absolute;
-    z-index: 1;
-}
-
 .njg-close{
     cursor: pointer;
     position: absolute;
