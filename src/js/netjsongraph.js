@@ -191,7 +191,8 @@
 
             dealDataByWorker(JSONData);
             addViewEye();
-            switchRenderMode();
+			switchRenderMode();
+			addSearchFunc();
 
             if(opts.listenUpdateUrl){
                 const socket = io(opts.listenUpdateUrl);
@@ -201,34 +202,7 @@
                 socket.on('disconnect', function(){
                     console.log('client disconnected.')
                 });
-                socket.on('netjsonChange', data => {
-                    if(data.date !== JSONCacheStack.date){
-                        document.getElementsByClassName("njg-date")[0].innerHTML = "Incoming Time: " + dateParse(data.date, opts.dateRegular);
-                    }
-                    dealDataByWorker(data)}
-                );
-            }
-            
-            function dealDataByWorker(JSONData){
-                let worker = new Worker("../src/js/netjsonWorker.js");
-                
-                worker.postMessage(JSONData);    
-                
-                worker.addEventListener('error', e => {
-                    console.error("Error in element rendering!");
-                });
-                worker.addEventListener('message', e => {
-                    JSONCacheStack = e.data;
-    
-                    if(opts.metadata){
-                        document.getElementById("metadataNodesLength").innerHTML = JSONCacheStack.nodes.length;
-                        document.getElementById("metadataLinksLength").innerHTML = JSONCacheStack.links.length;
-                    }
-    
-                    // unLoading();
-                    
-                    NetJSONRender();
-                });
+                socket.on('netjsonChange', JSONDataUpdate);
             }
         })
 
@@ -263,7 +237,58 @@
             else{
                 return new Promise(JSONParam);
             }
-        }
+		}
+
+		/**
+         * @function
+         * @name dealDataByWorker
+         *
+         * Deal JSONData by WebWorker and render.
+         * @param  {object}  JSONData     NetJSONData
+         * 
+         */
+
+		function dealDataByWorker(JSONData){
+			let worker = new Worker("../src/js/netjsonWorker.js");
+			
+			worker.postMessage(JSONData);    
+			
+			worker.addEventListener('error', e => {
+				console.error("Error in element rendering!");
+			});
+			worker.addEventListener('message', e => {
+				JSONCacheStack = e.data;
+
+				if(opts.metadata){
+					document.getElementById("metadataNodesLength").innerHTML = JSONCacheStack.nodes.length;
+					document.getElementById("metadataLinksLength").innerHTML = JSONCacheStack.links.length;
+				}
+
+				// unLoading();
+				
+				NetJSONRender();
+			});
+		}
+		
+		/**
+         * @function
+         * @name JSONDataUpdate
+         *
+         * Callback function executed when data update.Update Information and view.
+         * @param  {object}  JSONData     NetJSONData
+         * 
+         */
+
+		function JSONDataUpdate(JSONData){
+			opts.onLoad(JSONParam, opts);
+			opts.prepareData(JSONData);
+
+			if(JSONData.date && (JSONData.date !== JSONCacheStack.date)){
+				document.getElementsByClassName("njg-date")[0].innerHTML = "Incoming Time: " + dateParse(JSONData.date, opts.dateRegular);
+			}
+
+ 			dealDataByWorker(JSONData);
+		}
 
         /**
          * @function
@@ -617,7 +642,57 @@
                 opts.viewIndoormap = false;
                 NetJSONRender();
             }
-        }
+		}
+		
+		/**
+         * @function
+         * @name addSearchFunc
+         *
+         * Add search function for elements.
+         */
+
+        function addSearchFunc(){
+			let searchContainer = document.createElement("div"),
+				searchInput = document.createElement("input"),
+				searchBtn = document.createElement("button");
+				
+			searchInput.setAttribute("class", "njg-searchInput");
+			searchInput.placeholder = "Input value for searching special elements."
+			searchBtn.setAttribute("class", "njg-searchBtn");
+			searchBtn.innerHTML = "search";
+			searchContainer.setAttribute("class", "njg-searchContainer");
+			searchContainer.appendChild(searchInput);
+			searchContainer.appendChild(searchBtn);
+            netGraphContainer.appendChild(searchContainer);
+			
+			searchInput.onchange = () => {
+				// do something to deal user input value.
+			}
+			
+            searchBtn.onclick = () => {
+				let searchValue = searchInput.value.trim();
+				
+				if(!history.state || (history.state && history.state.searchValue !== searchValue)){
+					history.pushState({searchValue}, "");
+					updateSearchedElements(searchValue);
+					searchInput.value = "";
+				}
+			}
+
+			history.pushState({searchValue:""}, "");
+			
+			window.onpopstate = event => {
+				updateSearchedElements(event.state.searchValue);
+			}
+
+			function updateSearchedElements(searchValue){
+				fetch("https://ee3bdf59-d14c-4280-b514-52bd3dfc2c17.mock.pstmn.io/?search="+searchValue)
+				.then(data => data.json())
+				.then(data=>{
+					JSONDataUpdate(data)}
+				);
+			}
+		}
 
         /**
          * @function

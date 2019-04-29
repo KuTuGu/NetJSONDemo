@@ -380,13 +380,13 @@
                   },
                   settings: {
                     defaultNodeColor: '#ec5148',
-                    enableEdgeHovering: true,
+                    // enableEdgeHovering: true,
                     // skipErrors: true
                   },
                   renderers: [
                     {
                       container: graphChartContainer,
-                      type: 'canvas' // sigma.renderers.canvas works as well
+                      type: 'webgl' // sigma.renderers.canvas works as well
                     }
                   ]
                 });
@@ -403,7 +403,7 @@
                     slowDown: 1,
                     startingIterations: 1,
                     iterationsPerRender: 1,
-                    worker: true
+                    worker: false
                 });
     
                 // let dragListener, atlasObj, nodes;
