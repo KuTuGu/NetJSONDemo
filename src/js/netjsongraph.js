@@ -189,10 +189,12 @@
                 netGraphContainer.appendChild(dateNode);
             }
 
-            dealDataByWorker(JSONData);
+            // dealDataByWorker(JSONData);
             addViewEye();
 			switchRenderMode();
 			addSearchFunc();
+			JSONCacheStack = JSONData;
+			NetJSONRender();
 
             if(opts.listenUpdateUrl){
                 const socket = io(opts.listenUpdateUrl);

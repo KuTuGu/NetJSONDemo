@@ -189,9 +189,11 @@
                 netGraphContainer.appendChild(dateNode);
             }
 
-            dealDataByWorker(JSONData);
+            // dealDataByWorker(JSONData);
             addViewEye();
             switchRenderMode();
+            JSONCacheStack = JSONData;
+            NetJSONRender();
 
             if(opts.listenUpdateUrl){
                 const socket = io(opts.listenUpdateUrl);
@@ -359,6 +361,7 @@
             if(!opts.mapModeRender){
                 // const graphChart = echarts.init(graphChartContainer, null, {renderer: opts.svgRender ? "svg" : "canvas"});
                 // graphRenderResult(graphChart, JSONCacheStack);
+                let dragListener, atlasObj, nodes;
 
                 s = new sigma({
                   graph: {
@@ -368,29 +371,34 @@
                           x: Math.random(),
                           y: Math.random(),
                           size: Math.random(),
-                          color: '#666'
                       })),
                       edges: JSONCacheStack.links.map((a,i)=>({
                           id: 'e' + i,
                           source: 'n' + (Math.random() * JSONCacheStack.nodes.length | 0),
                           target: 'n' + (Math.random() * JSONCacheStack.nodes.length | 0),
-                          size: Math.random(),
-                          color: '#ccc'
+                          size: 1,
                       })),
                   },
                   settings: {
-                    defaultNodeColor: '#ec5148',
-                    // enableEdgeHovering: true,
+                    defaultEdgeHoverColor: "#000",
+                    // edgeHoverColor: "default",
+                    defaultNodeColor: '#666',
+                    defaultEdgeColor: '#ccc',
+                    edgeColor: "default",
+                    // hideEdgesOnMove: true,
+                    enableEdgeHovering: true,
+                    autoRescale: ['nodePosition', 'nodeSize']
                     // skipErrors: true
                   },
                   renderers: [
                     {
                       container: graphChartContainer,
-                      type: 'webgl' // sigma.renderers.canvas works as well
+                      type: 'canvas' // sigma.renderers.canvas works as well
                     }
                   ]
                 });
-                  s.startForceAtlas2({
+                
+                atlasObj = s.startForceAtlas2({ 
                     linLogMode: true,
                     outboundAttractionDistribution: false,
                     adjustSizes: false,
@@ -403,7 +411,11 @@
                     slowDown: 1,
                     startingIterations: 1,
                     iterationsPerRender: 1,
-                    worker: false
+                    autoStop: true,
+                    // avgDistanceThreshold: 100,
+                    barnesHutOptimize: true, //should we use the algorithm's Barnes-Hut to improve repulsion's scalability (O(n²) to O(nlog(n)))? This is useful for large graph but harmful to small ones.
+                    worker: false,
+                    background: true,
                 });
     
                 // let dragListener, atlasObj, nodes;
@@ -414,30 +426,35 @@
                 //     camera: 'cam'
                 // });
         
-                // window.onblur = function () {
-                //     s.stopForceAtlas2();
-                // };
+                window.onblur = function () {
+                  s.stopForceAtlas2();
+                };
+                window.onfocus = function () {
+                  s.startForceAtlas2();
+                };
         
                 dragListener = sigma.plugins.dragNodes(s, s.renderers[0]);
-                dragListener.bind('startdrag', function (event) {
-                    s.stopForceAtlas2();
+                dragListener.bind('drag', function (event) {
+                    s.stopForceAtlas2(); 
                 });
-                dragListener.bind('dragend', function (event) {
-                    // nodes = atlasObj.supervisor.graph.nodes();
-                    // for (let j = 0, i = 0, l = atlasObj.supervisor.nodesByteArray.length; i < l; i += atlasObj.supervisor.ppn) {
-                    //     if (nodes[j] === event.data.node) {
-                    //         atlasObj.supervisor.nodesByteArray[i] = event.data.node.x;
-                    //         atlasObj.supervisor.nodesByteArray[i + 1] = event.data.node.y;
-                    //     }
-                    //     j++;
-                    // }
+                dragListener.bind('drop', function (event) {
+                    nodes = s.supervisor.graph.nodes();
+                    for (let j = 0, i = 0, l = s.supervisor.nodesByteArray.length; i < l; i += s.supervisor.ppn) {
+                        if (nodes[j] === event.data.node) {
+                            s.supervisor.nodesByteArray[i] = event.data.node.x;
+                            s.supervisor.nodesByteArray[i + 1] = event.data.node.y;
+                        }
+                        j++;
+                    }
                     s.startForceAtlas2();
                 });
 
                 s.bind("clickNode", function(node){
+                  console.log(node)
                   opts.onClickNode(node);
                 })
                 s.bind("clickEdge", function(link){
+                  console.log(link);
                   opts.onClickLink(link);
                 })
             }

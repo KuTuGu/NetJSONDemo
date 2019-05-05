@@ -39,7 +39,7 @@ module.exports = (env, argv) => ({
 
     //对html模板进行处理，生成对应的html,引入需要的资源模块
     new HtmlWebpackPlugin({
-      template:'./examples/netjson.html',//模板文件
+      template:'./index.html',//模板文件
       filename:'index.html',//目标文件
       inject:true,//资源加入到底部
       hash:false,//加入版本号
