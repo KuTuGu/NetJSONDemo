@@ -96,9 +96,13 @@ This is just a demo, you can also customize other events to trigger data changes
 ### Different Demos
 
 [NetJSON Demo](https://kutugu.github.io/NetJSONDemo/examples/netjson.html)
+      
 [NetJSON-sigma Demo](https://kutugu.github.io/NetJSONDemo/examples/netjson-sigma.html)
+         
 [NetJSON-bigData Demo](https://kutugu.github.io/NetJSONDemo/examples/netjson-bigData.html)
+         
 [NetJSON-sigma-bigData Demo](https://kutugu.github.io/NetJSONDemo/examples/netjson-sigma-bigData.html)
+       
 
 ### How to migrate the previous version
 
