@@ -14,8 +14,11 @@ self.addEventListener("message", e => {
  * 
  */
 function dealJSONData(JSONData){
+    arrayDeduplication(JSONData.nodes, ["id"]);
     addFlatNodes(JSONData);
-    deleteUnlessLinks(JSONData);
+
+    changeInterfaceID(JSONData);
+    arrayDeduplication(JSONData.links, ["source", "target"], false);
     addNodeLinks(JSONData);
 }
 
@@ -29,29 +32,18 @@ function dealJSONData(JSONData){
  */
 function addFlatNodes(JSONData){
     JSONData.flatNodes = {};
+    JSONData.nodeInterfaces = {};
+
     JSONData.nodes.map(function(node){
-        if(node.id){
-            JSONData.flatNodes[node.id] = JSON.parse(JSON.stringify(node));
+        JSONData.flatNodes[node.id] = JSON.parse(JSON.stringify(node));
+
+        if(node.local_addresses){
+            node.local_addresses.map(address => {
+                JSONData.nodeInterfaces[address] = node;
+            })
         }
     });
 }
-
-/**
- * @function
- * @name deleteUnlessLinks
- *
- * Generate the data needed for graph rendering
- * @param  {object}  JSONData     NetJSONData
- * 
- */
-function deleteUnlessLinks(JSONData){
-    for(let i = JSONData.links.length - 1;i >= 0;i--){
-        if(!(JSONData.flatNodes[JSONData.links[i].source] && JSONData.flatNodes[JSONData.links[i].target])){
-            JSONData.links.splice(i, 1);
-        }
-    }
-}
-
 
 /**
  * @function
@@ -62,24 +54,51 @@ function deleteUnlessLinks(JSONData){
  * 
  */
 function addNodeLinks(JSONData){
-    arrayDeduplication(JSONData.nodes, ["id"]);
-    arrayDeduplication(JSONData.links, ["source", "target"]);
     let nodeLinks = {};
+
     JSONData.links.map(function(link){
-        if(JSONData.flatNodes[link.source] && JSONData.flatNodes[link.target]){
-            if(!nodeLinks[link.source]){
-                nodeLinks[link.source] = 0;
+        let sourceNode = JSONData.flatNodes[link.source],
+            targetNode = JSONData.flatNodes[link.target];
+        if(sourceNode && targetNode && sourceNode.id !== targetNode.id){
+            if(!nodeLinks[sourceNode.id]){
+                nodeLinks[sourceNode.id] = 0;
             }
-            if(!nodeLinks[link.target]){
-                nodeLinks[link.target] = 0;
+            if(!nodeLinks[targetNode.id]){
+                nodeLinks[targetNode.id] = 0;
             }
-            nodeLinks[link.source]++;
-            nodeLinks[link.target]++;
+            nodeLinks[sourceNode.id]++;
+            nodeLinks[targetNode.id]++;
         }
     });
     JSONData.nodes.map(function(node){
-        node.linkCount = nodeLinks[node.id];
+        node.linkCount = nodeLinks[node.id] || 0;
     });
+}
+
+/**
+ * @function
+ * @name changeInterfaceID
+ *
+ * Data Flattening, Data deduplication and detection of dirty data, etc.
+ * @param  {object}  JSONData     NetJSONData
+ * 
+ */
+function changeInterfaceID(JSONData){
+    for(let i = JSONData.links.length - 1;i >= 0;i--){
+        let link = JSONData.links[i];
+
+        if(link.source && link.target){
+            if(JSONData.nodeInterfaces[link.source]){
+                link.source = JSONData.nodeInterfaces[link.source].id;
+            }
+            if(JSONData.nodeInterfaces[link.target]){
+                link.target = JSONData.nodeInterfaces[link.target].id;
+            }
+            if(link.source === link.target){
+                JSONData.links.splice(i, 1);
+            }
+        }
+    }
 }
 
 /**
@@ -89,24 +108,31 @@ function addNodeLinks(JSONData){
  * Data Flattening, Data deduplication and detection of dirty data, etc.
  * @param  {array}  arrData     
  * @param  {array}  eigenvalues     arrData performs deduplication based on these eigenvalues
+ * @param {boolean} ordered         eigenvalues are ordered ?
  * 
  */
-function arrayDeduplication(arrData, eigenvalues = []){
+function arrayDeduplication(arrData, eigenvalues = [], ordered = true){
     let tempStack = [];
     for(let i = arrData.length - 1;i >= 0;i--){
-        let value = "", flag = 0;
+        let tempValueArr = [], flag = 0;
         for(let key of eigenvalues){
             if(!arrData[i][key]){
                 flag = 1;
                 break;
             }
-            value += arrData[i][key];
+            tempValueArr.push(arrData[i][key]);
         }
-        if(flag || tempStack.indexOf(value) !== -1){
+        if(flag){
             arrData.splice(i, 1);
         }
         else{
-            tempStack.push(value);
+            let value = ordered ? tempValueArr.join('') : tempValueArr.sort().join('');
+            if(tempStack.indexOf(value) !== -1){
+                arrData.splice(i, 1);
+            }
+            else{
+                tempStack.push(value);
+            }   
         }
     }
 }

@@ -1,3 +1,5 @@
+'use strict';
+
 (function () {
     /**
      * vanilla JS implementation of jQuery.extend()
@@ -48,11 +50,11 @@
          * @param  {float}             gravity             0.1         The gravitational strength to the specified numerical value. @see {@link https://github.com/mbostock/d3/wiki/Force-Layout#gravity}
          * @param  {int|array}         edgeLength          [20, 60]    The distance between the two nodes on the side, this distance will also be affected by repulsion. @see {@link https://echarts.apache.org/option.html#series-graph.force.edgeLength}
          * @param  {int|array}         repulsion           200         The repulsion factor between nodes. @see {@link https://echarts.apache.org/option.html#series-graph.force.repulsion}
-         * @param  {int}               circleRadius        8           The radius of circles (nodes) in pixel
+         * @param  {int|function}      circleRadius        node => 10  The radius of circles (nodes) in pixel
          * @param  {int}               labelDx             0           node labels offsetX(distance on x axis) in graph. @see {@link https://echarts.apache.org/option.html#series-graph.label.offset}
          * @param  {int}               labelDy             -10         node labels offsetY(distance on y axis) in graph.
-         * @param  {object}            nodeStyleProperty   {}          Used to custom node style. @see {@link https://echarts.apache.org/option.html#series-graph.data.itemStyle}
-         * @param  {object}            linkStyleProperty   {}          Used to custom link style. @see {@link https://echarts.apache.org/option.html#series-graph.links.lineStyle}
+         * @param  {object|function}   nodeStyleProperty   node => {}  Used to custom node style. @see {@link https://echarts.apache.org/option.html#series-graph.data.itemStyle}
+         * @param  {object|function}   linkStyleProperty   link => {}  Used to custom link style. @see {@link https://echarts.apache.org/option.html#series-graph.links.lineStyle}
          * @param  {function}          onInit                          Callback function executed on initialization
          * @param  {function}          onLoad                          Callback function executed after data has been loaded
          * @param  {function}          prepareData                     Used to convert NetJSON NetworkGraph to the javascript data
@@ -75,7 +77,7 @@
             gravity: 0.1,
             edgeLength: [20, 60],
             repulsion: 120,
-            circleRadius: 5,
+            circleRadius: 10,
             labelDx: 0,
             labelDy: -10,
             nodeStyleProperty: {},
@@ -165,8 +167,8 @@
         opts.onInit(JSONParam, opts);
 
         const netGraphContainer = document.getElementById(opts.el) || document.getElementsByTagName("body")[0];  
-        // JSONCacheStack store option configuration, nodeLinkOverlay store informationCard DOM.     
-        let JSONCacheStack = null, nodeLinkOverlay;
+        // customJSONCacheStack store option configuration, nodeLinkOverlay store informationCard DOM.  
+        let customJSONCacheStack = {}, nodeLinkOverlay;
 
         // Loading();
 
@@ -189,12 +191,11 @@
                 netGraphContainer.appendChild(dateNode);
             }
 
-            // dealDataByWorker(JSONData);
+            dealDataByWorker(JSONData);
             addViewEye();
 			switchRenderMode();
 			addSearchFunc();
-			JSONCacheStack = JSONData;
-			NetJSONRender();
+			// customJSONCacheStack = JSONData;
 
             if(opts.listenUpdateUrl){
                 const socket = io(opts.listenUpdateUrl);
@@ -259,11 +260,11 @@
 				console.error("Error in element rendering!");
 			});
 			worker.addEventListener('message', e => {
-				JSONCacheStack = e.data;
+                customJSONCacheStack = Object.freeze(e.data);
 
 				if(opts.metadata){
-					document.getElementById("metadataNodesLength").innerHTML = JSONCacheStack.nodes.length;
-					document.getElementById("metadataLinksLength").innerHTML = JSONCacheStack.links.length;
+					document.getElementById("metadataNodesLength").innerHTML = customJSONCacheStack.nodes.length;
+					document.getElementById("metadataLinksLength").innerHTML = customJSONCacheStack.links.length;
 				}
 
 				// unLoading();
@@ -285,7 +286,7 @@
 			opts.onLoad(JSONParam, opts);
 			opts.prepareData(JSONData);
 
-			if(JSONData.date && (JSONData.date !== JSONCacheStack.date)){
+			if(JSONData.date && (JSONData.date !== customJSONCacheStack.date)){
 				document.getElementsByClassName("njg-date")[0].innerHTML = "Incoming Time: " + dateParse(JSONData.date, opts.dateRegular);
 			}
 
@@ -303,6 +304,31 @@
          */
 
         function NetJSONDataParse(JSONData){
+            let categories = JSONData.categories || [],
+                nodes = JSONData.nodes.map(function(node){
+                    let nodeResult = JSON.parse(JSON.stringify(node));
+
+                    nodeResult.itemStyle = typeof opts.nodeStyleProperty === "function" ? opts.nodeStyleProperty(node) : opts.nodeStyleProperty;
+                    nodeResult.symbolSize = typeof opts.circleRadius === "function" ? opts.circleRadius(node) : opts.circleRadius;
+                    nodeResult.name = node.name || node.id;
+                    nodeResult.value = node.value || node.name;
+                    if(node.category){
+                        nodeResult.category = String(node.category);
+                    }
+                    if(categories.indexOf(node.category) === -1){
+                        categories.push(node.category)
+                    }
+
+                    return nodeResult;
+                }),
+                links = JSONData.links.map(function(link){
+                    let linkResult = JSON.parse(JSON.stringify(link));
+
+                    linkResult.lineStyle = typeof opts.linkStyleProperty === "function" ? opts.linkStyleProperty(link) : opts.linkStyleProperty;
+
+                    return linkResult;
+                });
+
             return {
                 title: {
                     text: "NetGraph Demo",
@@ -338,13 +364,13 @@
                     formatter: (params, ticket, callback) => params.dataType === "edge" ? linkInfo(params.data) : nodeInfo(params.data)
                 },
                 legend: {
-                    data: JSONData.categories
+                    data: categories
                 },
                 series:[{
                     type: "graph",
                     name: "NetGraph Demo",
                     layout: "force",
-                    cursor:"pointer",           
+                    cursor:"pointer",  
                     label:{     
                         show: true,   
                         color: "#000000",
@@ -356,13 +382,12 @@
                         gravity: opts.gravity,
                         edgeLength: opts.edgeLength,
                     },
-                    symbolSize: opts.circleRadius,
                     roam: true,
                     draggable: true,
                     focusNodeAdjacency: true,
-                    data: JSONData.nodes,
-                    links: JSONData.links,
-                    categories: JSONData.categories.map(category => ({name: category})),
+                    nodes,
+                    links,
+                    categories: categories.map(category => ({name: category})),
                 }]
             };
         }
@@ -385,7 +410,7 @@
             
             if(!opts.mapModeRender){
                 const graphChart = echarts.init(graphChartContainer, null, {renderer: opts.svgRender ? "svg" : "canvas"});
-                graphRenderResult(graphChart, JSONCacheStack);
+                graphRenderResult(graphChart, customJSONCacheStack);
             }
             else{
                 if(!opts.netjsonmap){
@@ -464,7 +489,7 @@
                         id: 'mapbox.streets',
                         accessToken: 'pk.eyJ1Ijoia3V0dWd1IiwiYSI6ImNqdHpnb2hqMjM0OG40OHBjbmN3azV1b2UifQ.PBk9TefuYkZlK8SweLAebA'
                     }).addTo(opts.netjsonmap));
-                    mapRenderResult(opts.netjsonmap, JSONCacheStack);
+                    mapRenderResult(opts.netjsonmap, customJSONCacheStack);
                 }
                 viewInputImage(opts.netjsonmap);
             }
@@ -479,24 +504,7 @@
          * @param  {object}  JSONData      Render dependent configuration
          */
         function graphRenderResult(chart, JSONData){
-            JSONData.links.map(function(link){
-                link.lineStyle = link.lineStyle || opts.linkStyleProperty;
-            });
-            JSONData.nodes.map(function(node){
-                node.itemStyle = node.nodeStyle || opts.nodeStyleProperty;
-                node.name = node.name || node.id;
-                node.value = node.value || node.name;
-                if(node.category){
-                    node.category = String(node.category);
-                }
-                if(!JSONData.categories){
-                    JSONData.categories = [];
-                }
-                if(JSONData.categories.indexOf(node.category) === -1){
-                    JSONData.categories.push(node.category)
-                }
-            });
-            chart.setOption(NetJSONDataParse(JSONData));
+            chart.setOption(NetJSONDataParse(JSONData))
             chart.on("mouseup", function(params){
                 if (params.componentType === "series" && params.seriesType === "graph") {
                     if (params.dataType === "edge") {
@@ -527,19 +535,45 @@
             for(let node_id in nodes){
                 if(nodes[node_id].location){
                     let {location, ...res} = nodes[node_id];
-                    nodeElements.push(L.circleMarker([location.lng, location.lat], Object.assign(nodes[[node_id]].nodeStyle || opts.nodeStyleProperty, {params: JSON.parse(JSON.stringify(res))})).bindTooltip(nodeInfo(res)));
+                    nodeElements.push(
+                        L.circleMarker(
+                            [location.lng, location.lat], 
+                            Object.assign(
+                                {radius: typeof opts.circleRadius === "function" ? opts.circleRadius(nodes[node_id]) : opts.circleRadius}, 
+                                typeof opts.nodeStyleProperty === "function" ? opts.nodeStyleProperty(nodes[node_id]) : opts.nodeStyleProperty, 
+                                {params: JSON.parse(JSON.stringify(res))}
+                            )
+                        ).bindTooltip(nodeInfo(res)));
                 }
             }
             for(let link of links){
                 if(nodes[link.source] && nodes[link.target]){
-                    linkElements.push(L.polyline([
-                        [nodes[link.source].location.lng, nodes[link.source].location.lat],
-                        [nodes[link.target].location.lng, nodes[link.target].location.lat],
-                    ], Object.assign(link.lineStyle || opts.linkStyleProperty, {params: JSON.parse(JSON.stringify(link))})).bindTooltip(linkInfo(link)));
+                    linkElements.push(
+                        L.polyline(
+                            [
+                                [nodes[link.source].location.lng, nodes[link.source].location.lat],
+                                [nodes[link.target].location.lng, nodes[link.target].location.lat],
+                            ], 
+                            Object.assign(
+                                typeof opts.linkStyleProperty === "function" ? opts.linkStyleProperty(link) : opts.linkStyleProperty,
+                                {params: JSON.parse(JSON.stringify(link))}
+                            )
+                        ).bindTooltip(linkInfo(link))
+                    )
                 }
             }
-            drawElements.push(L.featureGroup(nodeElements).on('click', function(e) { map.setView([e.latlng.lat, e.latlng.lng], map.getMaxZoom());opts.onClickNode(e.layer.options.params);}));
-            drawElements.push(L.featureGroup(linkElements).on('click', function(e) { map.setView([e.latlng.lat, e.latlng.lng]);opts.onClickLink(e.layer.options.params);}));
+            drawElements.push(
+                L.featureGroup(nodeElements).on('click', function(e) { 
+                    map.setView([e.latlng.lat, e.latlng.lng], map.getMaxZoom());
+                    opts.onClickNode(e.layer.options.params);
+                })
+            );
+            drawElements.push(
+                L.featureGroup(linkElements).on('click', function(e) { 
+                    map.setView([e.latlng.lat, e.latlng.lng]);
+                    opts.onClickLink(e.layer.options.params);
+                }
+            ));
             L.featureGroup(drawElements).addTo(map);
         }
 
@@ -784,7 +818,7 @@
                 dateNumberObject[dateNumerFields[i - 1]] = parseInt(dateParseArr[i], 10);
             }
 
-            let carry = -hourDiffer;
+            let carry = -hourDiffer, limitBoundary;
             for(let i = dateNumerFields.length;i > 0;i--){
                 if(dateNumerFields[i - 1] === "dateYear"){
                     dateNumberObject[dateNumerFields[i - 1]] += carry;

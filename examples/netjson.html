@@ -25,16 +25,22 @@
             // defaultStyle: false,
             // mapModeRender: true,
             // listenUpdateUrl: "http://localhost:8078",
-            // nodeStyleProperty: {
-            //     color: 'red',
-            //     fillColor: '#f03',
-            //     fillOpacity: 0.5,
-            //     radius: 8
+            // linkStyleProperty: e => {
+            //     console.log("link: ", e);
+            //     return {
+            //         color: 'blue',
+            //         opacity: 0.5,
+            //         weight: 3
+            //     }
             // },
-            // linkStyleProperty: {
-            //     color: 'blue',
-            //     opacity: 0.5,
-            //     weight: 3
+            // nodeStyleProperty: e => {
+            //     console.log("node: ", e);
+            //     return {
+            //         color: 'red',
+            //         fillColor: '#f03',
+            //         fillOpacity: 0.5,
+            //         radius: 8
+            //     };
             // },
         });
     </script>
