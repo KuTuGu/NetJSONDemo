@@ -1,138 +1,169 @@
-//Different renderings require different data formats
-self.addEventListener("message", e => {
-    dealJSONData(e.data);
-    postMessage(e.data);
-    close();
-});
+const operations = {
+  /**
+   * @function
+   * @name addFlatNodes
+   *
+   * Flattened nodes array by id
+   * @param  {array}  nodes  NetJSONData.nodes
+   *
+   * @return {object}  {flatNodes, nodeInterfaces}
+   */
+  addFlatNodes(nodes) {
+    let flatNodes = {};
+    let nodeInterfaces = {};
 
+    nodes.map(function(node) {
+      flatNodes[node.id] = JSON.parse(JSON.stringify(node));
+
+      if (node.local_addresses) {
+        node.local_addresses.map(address => {
+          nodeInterfaces[address] = node;
+        });
+      }
+    });
+    return { flatNodes, nodeInterfaces };
+  },
+
+  /**
+   * @function
+   * @name addNodeLinks
+   *
+   * Add node linkCount field
+   * @param  {object}  JSONData     NetJSONData
+   *
+   * @return {array}  nodes
+   *
+   */
+  addNodeLinks(JSONData) {
+    let nodeLinks = {};
+    let resultNodes = [];
+
+    JSONData.links.map(function(link) {
+      let sourceNode = JSONData.flatNodes[link.source],
+        targetNode = JSONData.flatNodes[link.target];
+      if (sourceNode && targetNode && sourceNode.id !== targetNode.id) {
+        if (!nodeLinks[sourceNode.id]) {
+          nodeLinks[sourceNode.id] = 0;
+        }
+        if (!nodeLinks[targetNode.id]) {
+          nodeLinks[targetNode.id] = 0;
+        }
+        nodeLinks[sourceNode.id]++;
+        nodeLinks[targetNode.id]++;
+      }
+    });
+    for (let nodeID in JSONData.flatNodes) {
+      let copyNode = JSON.parse(JSON.stringify(JSONData.flatNodes[nodeID]));
+      copyNode.linkCount = nodeLinks[nodeID] || 0;
+      resultNodes.push(copyNode);
+    }
+    return resultNodes;
+  },
+
+  /**
+   * @function
+   * @name changeInterfaceID
+   *
+   * Netjson multi-interface id process.
+   * @param  {object}  JSONData     NetJSONData
+   *
+   * @return {array}  links
+   *
+   */
+  changeInterfaceID(JSONData) {
+    let copyLinks = JSON.parse(JSON.stringify(JSONData.links));
+    for (let i = copyLinks.length - 1; i >= 0; i--) {
+      let link = copyLinks[i];
+
+      if (link.source && link.target) {
+        if (JSONData.nodeInterfaces[link.source]) {
+          link.source = JSONData.nodeInterfaces[link.source].id;
+        }
+        if (JSONData.nodeInterfaces[link.target]) {
+          link.target = JSONData.nodeInterfaces[link.target].id;
+        }
+        if (link.source === link.target) {
+          copyLinks.splice(i, 1);
+        }
+      }
+    }
+    return copyLinks;
+  },
+
+  /**
+   * @function
+   * @name arrayDeduplication
+   *
+   * Data deduplication and detection of dirty data by eigenvalues
+   * @param  {array}  arrData
+   * @param  {array}  eigenvalues     arrData performs deduplication based on these eigenvalues
+   * @param {boolean} ordered         eigenvalues are ordered ?
+   *
+   * @return {array}  result
+   *
+   */
+  arrayDeduplication(arrData, eigenvalues = [], ordered = true) {
+    let copyArr = JSON.parse(JSON.stringify(arrData));
+    let tempStack = [];
+    for (let i = copyArr.length - 1; i >= 0; i--) {
+      let tempValueArr = [],
+        flag = 0;
+      for (let key of eigenvalues) {
+        if (!copyArr[i][key]) {
+          flag = 1;
+          break;
+        }
+        tempValueArr.push(copyArr[i][key]);
+      }
+      if (flag) {
+        copyArr.splice(i, 1);
+      } else {
+        let value = ordered
+          ? tempValueArr.join("")
+          : tempValueArr.sort().join("");
+        if (tempStack.indexOf(value) !== -1) {
+          copyArr.splice(i, 1);
+        } else {
+          tempStack.push(value);
+        }
+      }
+    }
+    return copyArr;
+  }
+};
 /**
  * @function
  * @name dealJSONData
  *
  * Generate the data needed for graph rendering
  * @param  {object}  JSONData     NetJSONData
- * 
- */
-function dealJSONData(JSONData){
-    arrayDeduplication(JSONData.nodes, ["id"]);
-    addFlatNodes(JSONData);
-
-    changeInterfaceID(JSONData);
-    arrayDeduplication(JSONData.links, ["source", "target"], false);
-    addNodeLinks(JSONData);
-}
-
-/**
- * @function
- * @name addFlatNodes
+ * @param  {object}  operations
  *
- * Generate the data needed for graph rendering
- * @param  {object}  JSONData     NetJSONData
- * 
  */
-function addFlatNodes(JSONData){
-    JSONData.flatNodes = {};
-    JSONData.nodeInterfaces = {};
+function dealJSONData(JSONData, operations) {
+  JSONData.nodes = operations.arrayDeduplication(JSONData.nodes, ["id"]);
 
-    JSONData.nodes.map(function(node){
-        JSONData.flatNodes[node.id] = JSON.parse(JSON.stringify(node));
+  let { flatNodes, nodeInterfaces } = operations.addFlatNodes(JSONData.nodes);
+  JSONData.flatNodes = flatNodes;
+  JSONData.nodeInterfaces = nodeInterfaces;
 
-        if(node.local_addresses){
-            node.local_addresses.map(address => {
-                JSONData.nodeInterfaces[address] = node;
-            })
-        }
-    });
+  JSONData.links = operations.changeInterfaceID(JSONData);
+
+  JSONData.links = operations.arrayDeduplication(
+    JSONData.links,
+    ["source", "target"],
+    false
+  );
+
+  JSONData.nodes = operations.addNodeLinks(JSONData);
+
+  return JSONData;
 }
 
-/**
- * @function
- * @name addNodeLinks
- *
- * Data Flattening, Data deduplication and detection of dirty data, etc.
- * @param  {object}  JSONData     NetJSONData
- * 
- */
-function addNodeLinks(JSONData){
-    let nodeLinks = {};
+self.addEventListener("message", e => {
+  dealJSONData(e.data, operations);
+  postMessage(e.data);
+  close();
+});
 
-    JSONData.links.map(function(link){
-        let sourceNode = JSONData.flatNodes[link.source],
-            targetNode = JSONData.flatNodes[link.target];
-        if(sourceNode && targetNode && sourceNode.id !== targetNode.id){
-            if(!nodeLinks[sourceNode.id]){
-                nodeLinks[sourceNode.id] = 0;
-            }
-            if(!nodeLinks[targetNode.id]){
-                nodeLinks[targetNode.id] = 0;
-            }
-            nodeLinks[sourceNode.id]++;
-            nodeLinks[targetNode.id]++;
-        }
-    });
-    JSONData.nodes.map(function(node){
-        node.linkCount = nodeLinks[node.id] || 0;
-    });
-}
-
-/**
- * @function
- * @name changeInterfaceID
- *
- * Data Flattening, Data deduplication and detection of dirty data, etc.
- * @param  {object}  JSONData     NetJSONData
- * 
- */
-function changeInterfaceID(JSONData){
-    for(let i = JSONData.links.length - 1;i >= 0;i--){
-        let link = JSONData.links[i];
-
-        if(link.source && link.target){
-            if(JSONData.nodeInterfaces[link.source]){
-                link.source = JSONData.nodeInterfaces[link.source].id;
-            }
-            if(JSONData.nodeInterfaces[link.target]){
-                link.target = JSONData.nodeInterfaces[link.target].id;
-            }
-            if(link.source === link.target){
-                JSONData.links.splice(i, 1);
-            }
-        }
-    }
-}
-
-/**
- * @function
- * @name arrayDeduplication
- *
- * Data Flattening, Data deduplication and detection of dirty data, etc.
- * @param  {array}  arrData     
- * @param  {array}  eigenvalues     arrData performs deduplication based on these eigenvalues
- * @param {boolean} ordered         eigenvalues are ordered ?
- * 
- */
-function arrayDeduplication(arrData, eigenvalues = [], ordered = true){
-    let tempStack = [];
-    for(let i = arrData.length - 1;i >= 0;i--){
-        let tempValueArr = [], flag = 0;
-        for(let key of eigenvalues){
-            if(!arrData[i][key]){
-                flag = 1;
-                break;
-            }
-            tempValueArr.push(arrData[i][key]);
-        }
-        if(flag){
-            arrData.splice(i, 1);
-        }
-        else{
-            let value = ordered ? tempValueArr.join('') : tempValueArr.sort().join('');
-            if(tempStack.indexOf(value) !== -1){
-                arrData.splice(i, 1);
-            }
-            else{
-                tempStack.push(value);
-            }   
-        }
-    }
-}
+module.exports = { operations, dealJSONData };
