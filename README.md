@@ -1,10 +1,13 @@
 # NetJSON Demo
 
 [![Travis (.org) branch](https://img.shields.io/travis/kutugu/netjsondemo/master.svg)](https://travis-ci.org/KuTuGu/NetJSONDemo)
-![Download](https://img.shields.io/npm/dt/netjsongraph.js.svg)
-![NPM](https://img.shields.io/npm/v/netjsongraph.js.svg)
+[![Coverage Status](https://coveralls.io/repos/github/KuTuGu/NetJSONDemo/badge.svg?branch=master)](https://coveralls.io/github/KuTuGu/NetJSONDemo?branch=master)
+![Download](https://img.shields.io/npm/dt/npm-test-publish-netjsondemo.svg)
+![NPM](https://img.shields.io/npm/v/npm-test-publish-netjsondemo.svg)
 ![Language](https://img.shields.io/badge/language-javascript-orange.svg)
-
+       
+[![NPM](https://nodei.co/npm/npm-test-publish-netjsondemo.png)](https://nodei.co/npm/npm-test-publish-netjsondemo/)
+         
 ![img](/src/data/netjsongraph.png)
 ![img](/src/data/netjsonmap.png)
 ![img](/src/data/netjsonindoormap.png)
