@@ -1,5 +1,10 @@
 # NetJSON Demo
 
+[![Travis (.org) branch](https://img.shields.io/travis/kutugu/netjsondemo/master.svg)](https://travis-ci.org/KuTuGu/NetJSONDemo)
+![Download](https://img.shields.io/npm/dt/netjsongraph.js.svg)
+![NPM](https://img.shields.io/npm/v/netjsongraph.js.svg)
+![Language](https://img.shields.io/badge/language-javascript-orange.svg)
+
 ![img](/src/data/netjsongraph.png)
 ![img](/src/data/netjsonmap.png)
 ![img](/src/data/netjsonindoormap.png)

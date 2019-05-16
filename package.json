@@ -7,8 +7,10 @@
     "dev": "webpack-dev-server --open --hot --mode development",
     "start": "npm run dev",
     "build": "webpack --progress --hide-modules --mode production",
+    "cover": "npm run test -- --coverage && cat ./coverage/lcov.info | coveralls",
     "precommit": "lint-staged",
-    "lint": "eslint --fix --ext .js src"
+    "lint": "eslint --fix --ext .js src",
+    "test1": "coveralls"
   },
   "lint-staged": {
     "src/**/*.js": [
@@ -26,13 +28,14 @@
   ],
   "devDependencies": {
     "acorn": "^6.0.0",
+    "coveralls": "^3.0.3",
     "css-loader": "^1.0.0",
     "eslint": "^5.16.0",
+    "eslint-config-airbnb": "^17.1.0",
+    "eslint-config-prettier": "^2.9.0",
     "eslint-plugin-import": "^2.14.0",
     "eslint-plugin-jsx-a11y": "^6.1.1",
     "eslint-plugin-react": "^7.11.0",
-    "eslint-config-airbnb": "^17.1.0",
-    "eslint-config-prettier": "^2.9.0",
     "extract-text-webpack-plugin": "^4.0.0-beta.0",
     "file-loader": "^2.0.0",
     "html-loader": "^0.5.5",
