@@ -75,25 +75,17 @@ This is just a demo, you can also customize other events to trigger data changes
 <head>
     <title>netjsongraph.js: basic example</title>
     <meta charset="utf-8">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.4.0/dist/leaflet.css"
-    integrity="sha512-puBpdR0798OZvTTbP4A8Ix/l+A4dHDD0DGqYW6RQ+9jxkRFclaxxQb/SJAWZfWAkuyeQUytO7+7N4QKrDh+drA=="
-    crossorigin=""/>
     <!-- theme can be easily customized via css -->
     <link href="../src/css/netjsongraph-theme.css" rel="stylesheet">
     <link href="../src/css/netjsongraph.css" rel="stylesheet">
-    <link href="../lib/leaflet-draw.css" rel="stylesheet">
 </head>
 <body>
-    <script src="https://unpkg.com/leaflet@1.4.0/dist/leaflet.js"
-    integrity="sha512-QVftwZFqvtRNi0ZyCtsznlKSWOStnDORoefr1enyq5mVL4tmKB3S/EnC3rRJcxCPavG10IcrVGSmPh6Qw5lwrg=="
-    crossorigin=""></script>
-    <script src="../lib/leaflet-mapDownload.js"></script>
-    <script src="../lib/leaflet-draw.js"></script>
-    <script type="text/javascript" src="../lib/echarts.min.js"></script>
-    <script type="text/javascript" src="../lib/socket.io.js"></script>
-    <script type="text/javascript" src="../src/js/netjsongraph.js"></script>
+    <script type="text/javascript" src="../dist/netjsongraph.min.js"></script>
     <script type="text/javascript">
-        echarts.netGraphChart("../src/data/netjson.json");
+        const graph = new NetJSONGraph("../src/data/netjson-multipleInterfaces.json", {
+            render: graphRender,
+        });
+        graph.render();
     </script>
 </body>
 </html>
@@ -103,7 +95,9 @@ This is just a demo, you can also customize other events to trigger data changes
 
 ### Different Demos
 
-[NetJSON base Demo](https://kutugu.github.io/NetJSONDemo/examples/netjson.html)
+[NetJSON graph base Demo](https://kutugu.github.io/NetJSONDemo/examples/netjsongraph.html)
+     
+[NetJSON map base Demo](https://kutugu.github.io/NetJSONDemo/examples/netjsonmap.html)
       
 [NetJSON sigmaJS version Demo](https://kutugu.github.io/NetJSONDemo/examples/netjson-sigma.html)
          

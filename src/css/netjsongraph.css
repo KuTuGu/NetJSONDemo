@@ -68,7 +68,7 @@ html, body{
 .switch-wrap{
     position: absolute;
     left: 50px;
-    bottom: 20px;
+    bottom: 45px;
     z-index: 1;
 }
 
@@ -175,11 +175,11 @@ html, body{
 .njg-searchBtn{
   padding: 5px 10px;
   margin-left: 10px;
-  background-color: transparent;
+  background-color: white;
 }
 .njg-searchContainer{
   position: absolute;
-  right: 100px;
+  left: 300px;
   top: 10px;
   z-index: 1;
 }

@@ -9,8 +9,7 @@
     "build": "webpack --progress --hide-modules --mode production",
     "cover": "npm run test -- --coverage && cat ./coverage/lcov.info | coveralls",
     "precommit": "lint-staged",
-    "lint": "eslint --fix --ext .js src",
-    "test1": "coveralls"
+    "lint": "eslint --fix --ext .js src"
   },
   "lint-staged": {
     "src/**/*.js": [
@@ -28,6 +27,7 @@
     "visualization"
   ],
   "devDependencies": {
+    "@babel/preset-env": "^7.4.4",
     "acorn": "^6.0.0",
     "coveralls": "^3.0.3",
     "css-loader": "^1.0.0",
@@ -52,5 +52,8 @@
     "webpack-cli": "^3.1.0",
     "webpack-dev-server": "^3.1.7"
   },
-  "dependencies": {}
+  "dependencies": {
+    "echarts": "^4.2.1",
+    "socket.io": "^2.2.0"
+  }
 }

@@ -12,19 +12,10 @@
     <link href="../lib/leaflet-draw.css" rel="stylesheet">
 </head>
 <body>
-    <script src="https://unpkg.com/leaflet@1.4.0/dist/leaflet.js"
-    integrity="sha512-QVftwZFqvtRNi0ZyCtsznlKSWOStnDORoefr1enyq5mVL4tmKB3S/EnC3rRJcxCPavG10IcrVGSmPh6Qw5lwrg=="
-    crossorigin=""></script>
-    <script src="../lib/leaflet-mapDownload.js"></script>
-    <script src="../lib/leaflet-draw.js"></script>
-    <script type="text/javascript" src="../lib/echarts.min.js"></script>
-    <script type="text/javascript" src="../lib/socket.io.js"></script>
-    <script type="text/javascript" src="../src/js/netjsongraph.js"></script>
+    <script type="text/javascript" src="../dist/netjsongraph.min.js"></script>
     <script type="text/javascript">
-        echarts.netGraphChart("../src/data/netjson.json", {
-            // defaultStyle: false,
-            // mapModeRender: true,
-            // listenUpdateUrl: "http://localhost:8078",
+        const map = new NetJSONGraph("../src/data/netjson.json", {
+            render: mapRender,
             // linkStyleProperty: e => {
             //     console.log("link: ", e);
             //     return {
@@ -43,6 +34,6 @@
             //     };
             // },
         });
+        map.render();
     </script>
-</body>
 </html>

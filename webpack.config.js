@@ -4,12 +4,10 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 
 module.exports = (env, argv) => ({
-  entry:{
-    move: './src/js/netjsongraph.js',
-  },
+  entry: ['./src/js/netjsongraph.render.js', './src/js/netjsongraph.core.js'],
   output: {
     path: path.resolve(__dirname, './dist'),
-    filename: 'js/[name].js'
+    filename: 'netjsongraph.min.js'
   },
   module:{
     rules:[
@@ -38,13 +36,13 @@ module.exports = (env, argv) => ({
     }),
 
     //对html模板进行处理，生成对应的html,引入需要的资源模块
-    new HtmlWebpackPlugin({
-      template:'./index.html',//模板文件
-      filename:'index.html',//目标文件
-      inject:true,//资源加入到底部
-      hash:false,//加入版本号
-      // chunks:['move'],
-    }),
+    // new HtmlWebpackPlugin({
+    //   template:'./examples/netjson.html',//模板文件
+    //   filename:'index.html',//目标文件
+    //   inject:true,//资源加入到底部
+    //   hash:false,//加入版本号
+    //   // chunks:['move'],
+    // }),
   ],
 
   //本地服务器配置
