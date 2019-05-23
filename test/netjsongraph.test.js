@@ -75,7 +75,8 @@ describe("Test netjsongraph function utils", () => {
       // key
       ["2019-04-03T05:06:54.000Z"],
       // value
-      "2019.04.03 13:06:54.000"
+      "2019.04.03 05:06:54.000"         // depand on time zone!
+      //"2019.04.03 13:06:54.000"
     ],
   ]);
   
