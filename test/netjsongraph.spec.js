@@ -45,7 +45,7 @@ describe('NetJSONGraph Specification', () => {
     expect(graph.utils.NetJSONMetadata).toBeInstanceOf(Function);
     expect(graph.utils.switchRenderMode).toBeInstanceOf(Function);
     // expect(graph.utils.addViewEye).toBeInstanceOf(Function);
-    expect(graph.utils.addSearchFunc).toBeInstanceOf(Function);
+    // expect(graph.utils.addSearchFunc).toBeInstanceOf(Function);
     expect(graph.utils.nodeInfo).toBeInstanceOf(Function);
     expect(graph.utils.linkInfo).toBeInstanceOf(Function);
     expect(graph.utils.numberMinDigit).toBeInstanceOf(Function);
