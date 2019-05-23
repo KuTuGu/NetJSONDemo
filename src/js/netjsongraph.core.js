@@ -83,23 +83,26 @@ const NetJSONGraphDefaultConfig = {
    * @this {object}      The instantiated object of NetJSONGraph
    */
   onClickNode: function(node) {
-    if (!NetJSONCache.nodeLinkOverlay) {
-      NetJSONCache.nodeLinkOverlay = document.createElement("div");
-      NetJSONCache.nodeLinkOverlay.setAttribute("class", "njg-overlay");
-      this.el.appendChild(NetJSONCache.nodeLinkOverlay);
+    let nodeLinkOverlay = document.getElementsByClassName("njg-overlay")[0];
+
+    if (!nodeLinkOverlay) {
+      nodeLinkOverlay = document.createElement("div");
+      nodeLinkOverlay.setAttribute("class", "njg-overlay");
+      this.el.appendChild(nodeLinkOverlay);
     }
-    NetJSONCache.nodeLinkOverlay.style.display = "block";
-    NetJSONCache.nodeLinkOverlay.innerHTML = `
+    nodeLinkOverlay.style.visibility = "visible";
+    nodeLinkOverlay.innerHTML = `
             <div class="njg-inner">
                 ${this.utils.nodeInfo(node)}
             </div>
         `;
     const closeA = document.createElement("a");
     closeA.setAttribute("class", "njg-close");
+    closeA.setAttribute("id", "nodeOverlay-close");
     closeA.onclick = () => {
-      NetJSONCache.nodeLinkOverlay.style.display = "none";
+      nodeLinkOverlay.style.visibility = "hidden";
     };
-    NetJSONCache.nodeLinkOverlay.appendChild(closeA);
+    nodeLinkOverlay.appendChild(closeA);
   },
   /**
    * @function
@@ -109,29 +112,27 @@ const NetJSONGraphDefaultConfig = {
    * @this {object}      The instantiated object of NetJSONGraph
    */
   onClickLink: function(link) {
-    if (!NetJSONCache.nodeLinkOverlay) {
-      NetJSONCache.nodeLinkOverlay = document.createElement("div");
-      NetJSONCache.nodeLinkOverlay.setAttribute("class", "njg-overlay");
-      this.el.appendChild(NetJSONCache.nodeLinkOverlay);
+    let nodeLinkOverlay = document.getElementsByClassName("njg-overlay")[0];
+
+    if (nodeLinkOverlay) {
+      nodeLinkOverlay = document.createElement("div");
+      nodeLinkOverlay.setAttribute("class", "njg-overlay");
+      this.el.appendChild(nodeLinkOverlay);
     }
-    NetJSONCache.nodeLinkOverlay.style.display = "block";
-    NetJSONCache.nodeLinkOverlay.innerHTML = `
+    nodeLinkOverlay.style.visibility = "visible";
+    nodeLinkOverlay.innerHTML = `
             <div class="njg-inner">
                 ${this.utils.linkInfo(link)}
             </div>
         `;
     const closeA = document.createElement("a");
     closeA.setAttribute("class", "njg-close");
+    closeA.setAttribute("id", "linkOverlay-close");
     closeA.onclick = () => {
-      NetJSONCache.nodeLinkOverlay.style.display = "none";
+      nodeLinkOverlay.style.visibility = "hidden";
     };
-    NetJSONCache.nodeLinkOverlay.appendChild(closeA);
+    nodeLinkOverlay.appendChild(closeA);
   }
-};
-let NetJSONCache = {
-  // NetJSONCache.data store dealed JSON data, NetJSONCache.nodeLinkOverlay store informationCard DOM.
-  data: null,
-  nodeLinkOverlay: null
 };
 
 class NetJSONGraph {
@@ -201,13 +202,13 @@ class NetJSONGraph {
       if (this.config.dealDataByWorker) {
         this.utils.dealDataByWorker(JSONData, this.config.dealDataByWorker);
       } else {
-        NetJSONCache.data = Object.freeze(JSONData);
+        this.data = Object.freeze(JSONData);
         this.utils.NetJSONRender();
       }
 
       // this.utils.addViewEye();
       this.utils.switchRenderMode();
-      this.utils.addSearchFunc();
+      // this.utils.addSearchFunc();
 
       if (this.config.listenUpdateUrl) {
         const socket = io(this.config.listenUpdateUrl);
@@ -396,9 +397,6 @@ class NetJSONGraph {
         }
         if (node.properties) {
           for (let key in node.properties) {
-            if (!node.properties.hasOwnProperty(key)) {
-              continue;
-            }
             html +=
               "<p><b>" +
               key.replace(/_/g, " ") +
@@ -435,10 +433,7 @@ class NetJSONGraph {
           link.target
         }</p>\n<p><b>cost</b>: ${link.cost}</p>\n`;
         if (link.properties) {
-          for (var key in link.properties) {
-            if (!link.properties.hasOwnProperty(key)) {
-              continue;
-            }
+          for (let key in link.properties) {
             html +=
               "<p><b>" +
               key.replace(/_/g, " ") +
@@ -470,19 +465,22 @@ class NetJSONGraph {
           console.error("Error in dealing JSONData!");
         });
         worker.addEventListener("message", e => {
-          NetJSONCache.data = Object.freeze(e.data);
+          _this.data = Object.freeze(e.data);
 
-          if (JSONData.date && JSONData.date !== NetJSONCache.data.date) {
+          if (JSONData.date && JSONData.date !== _this.data.date) {
             document.getElementsByClassName("njg-date")[0].innerHTML =
               "Incoming Time: " +
-              this.dateParse(NetJSONCache.data.date, _this.config.dateRegular);
+              this.dateParse(_this.data.date, _this.config.dateRegular);
           }
 
           if (_this.config.metadata) {
+            document.getElementsByClassName(
+              "njg-metadata"
+            )[0].style.visibility = "visible";
             document.getElementById("metadataNodesLength").innerHTML =
-              NetJSONCache.data.nodes.length;
+              _this.data.nodes.length;
             document.getElementById("metadataLinksLength").innerHTML =
-              NetJSONCache.data.links.length;
+              _this.data.links.length;
           }
 
           this.NetJSONRender();
@@ -503,12 +501,14 @@ class NetJSONGraph {
 
         _this.config.onLoad.call(_this).prepareData(JSONData);
 
-        if (JSONData.date && JSONData.date !== NetJSONCache.data.date) {
+        if (JSONData.date && JSONData.date !== _this.data.date) {
           document.getElementsByClassName("njg-date")[0].innerHTML =
             "Incoming Time: " +
             this.dateParse(JSONData.date, _this.config.dateRegular);
         }
         if (_this.config.metadata) {
+          document.getElementsByClassName("njg-metadata")[0].style.visibility =
+            "visible";
           document.getElementById("metadataNodesLength").innerHTML =
             JSONData.nodes.length;
           document.getElementById("metadataLinksLength").innerHTML =
@@ -520,7 +520,7 @@ class NetJSONGraph {
         if (_this.config.dealDataByWorker) {
           this.dealDataByWorker(JSONData, _this.config.dealDataByWorker);
         } else {
-          NetJSONCache.data = Object.freeze(JSONData);
+          _this.data = Object.freeze(JSONData);
           this.NetJSONRender();
         }
       },
@@ -545,7 +545,7 @@ class NetJSONGraph {
         graphChartContainer.setAttribute("id", "graphChartContainer");
         _this.el.appendChild(graphChartContainer);
         if (_this.config.render) {
-          _this.config.render(graphChartContainer, NetJSONCache.data, _this);
+          _this.config.render(graphChartContainer, _this.data, _this);
         } else {
           console.error("No render function!");
         }
@@ -600,9 +600,11 @@ class NetJSONGraph {
         metadataContainer.setAttribute("style", "display: block");
         innerDiv.setAttribute("class", "njg-inner");
         closeA.setAttribute("class", "njg-close");
+        closeA.setAttribute("id", "metadata-close");
 
         closeA.onclick = () => {
-          metadataContainer.classList.add("njg-hidden");
+          metadataContainer.style.visibility = "hidden";
+          _this.config.metadata = false;
         };
         innerDiv.innerHTML = html;
         metadataContainer.appendChild(innerDiv);
@@ -634,12 +636,14 @@ class NetJSONGraph {
         checkLabel.setAttribute("for", "switch");
         canvasMode.innerHTML = "Canvas";
         svgMode.innerHTML = "Svg";
-        checkInput.onchange = e => {
-          _this.config.svgRender = e.target.checked;
+        checkInput.onchange = () => {
+          _this.config.svgRender = !_this.config.svgRender;
           this.NetJSONRender();
         };
         if (_this.config.svgRender) {
           checkInput.checked = true;
+        } else {
+          checkInput.checked = false;
         }
         switchWrapper.appendChild(canvasMode);
         switchWrapper.appendChild(checkInput);
@@ -648,7 +652,7 @@ class NetJSONGraph {
         _this.el.appendChild(switchWrapper);
 
         return switchWrapper;
-      },
+      }
 
       /**
        * @function
@@ -683,57 +687,57 @@ class NetJSONGraph {
        * @return {object} searchContainer DOM
        */
 
-      addSearchFunc() {
-        let searchContainer = document.createElement("div"),
-          searchInput = document.createElement("input"),
-          searchBtn = document.createElement("button"),
-          utils = this;
+      // addSearchFunc() {
+      //   let searchContainer = document.createElement("div"),
+      //     searchInput = document.createElement("input"),
+      //     searchBtn = document.createElement("button"),
+      //     utils = this;
 
-        searchInput.setAttribute("class", "njg-searchInput");
-        searchInput.placeholder = "Input value for searching special elements.";
-        searchBtn.setAttribute("class", "njg-searchBtn");
-        searchBtn.innerHTML = "search";
-        searchContainer.setAttribute("class", "njg-searchContainer");
-        searchContainer.appendChild(searchInput);
-        searchContainer.appendChild(searchBtn);
-        _this.el.appendChild(searchContainer);
+      //   searchInput.setAttribute("class", "njg-searchInput");
+      //   searchInput.placeholder = "Input value for searching special elements.";
+      //   searchBtn.setAttribute("class", "njg-searchBtn");
+      //   searchBtn.innerHTML = "search";
+      //   searchContainer.setAttribute("class", "njg-searchContainer");
+      //   searchContainer.appendChild(searchInput);
+      //   searchContainer.appendChild(searchBtn);
+      //   _this.el.appendChild(searchContainer);
 
-        searchInput.onchange = () => {
-          // do something to deal user input value.
-        };
+      //   searchInput.onchange = () => {
+      //     // do something to deal user input value.
+      //   };
 
-        searchBtn.onclick = () => {
-          let searchValue = searchInput.value.trim();
+      //   searchBtn.onclick = () => {
+      //     let searchValue = searchInput.value.trim();
 
-          if (
-            !history.state ||
-            (history.state && history.state.searchValue !== searchValue)
-          ) {
-            history.pushState({ searchValue }, "");
-            updateSearchedElements(searchValue);
-            searchInput.value = "";
-          }
-        };
+      //     if (
+      //       !history.state ||
+      //       (history.state && history.state.searchValue !== searchValue)
+      //     ) {
+      //       history.pushState({ searchValue }, "");
+      //       updateSearchedElements(searchValue);
+      //       searchInput.value = "";
+      //     }
+      //   };
 
-        history.pushState({ searchValue: "" }, "");
+      //   history.pushState({ searchValue: "" }, "");
 
-        window.onpopstate = event => {
-          updateSearchedElements(event.state.searchValue);
-        };
+      //   window.onpopstate = event => {
+      //     updateSearchedElements(event.state.searchValue);
+      //   };
 
-        return searchContainer;
+      //   return searchContainer;
 
-        function updateSearchedElements(searchValue) {
-          fetch(
-            "https://ee3bdf59-d14c-4280-b514-52bd3dfc2c17.mock.pstmn.io/?search=" +
-              searchValue
-          )
-            .then(data => data.json())
-            .then(data => {
-              utils.JSONDataUpdate(data);
-            });
-        }
-      }
+      //   function updateSearchedElements(searchValue) {
+      //     fetch(
+      //       "https://ee3bdf59-d14c-4280-b514-52bd3dfc2c17.mock.pstmn.io/?search=" +
+      //         searchValue
+      //     )
+      //       .then(data => data.json())
+      //       .then(data => {
+      //         utils.JSONDataUpdate(data);
+      //       });
+      //   }
+      // }
     };
   }
 }
