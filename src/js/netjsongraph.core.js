@@ -7,7 +7,6 @@
  * @param  {bool}              metadata            true        Display NetJSON metadata at startup?
  * @param  {bool}              defaultStyle        true        Does node use default css style? If not, you can income the style with JSON.
  * @param  {bool}              svgRender           false       Switch to Svg mode render?
- * @param  {string}            listenUpdateUrl     ""          listen the url to update JSONData.
  * @param  {object(RegExp)}    dateRegular         /(?:)/      Analyze date format.The exec result must be [date, year, month, day, hour, minute, second, millisecond?]
  * @param  {float}             gravity             0.1         The gravitational strength to the specified numerical value. @see {@link https://github.com/mbostock/d3/wiki/Force-Layout#gravity}
  * @param  {int|array}         edgeLength          [20, 60]    The distance between the two nodes on the side, this distance will also be affected by repulsion. @see {@link https://echarts.apache.org/option.html#series-graph.force.edgeLength}
@@ -153,6 +152,7 @@ class NetJSONGraph {
    * Set properties of instance
    * @param {Object} config
    *
+   * @this {object}      The instantiated object of NetJSONGraph
    * @return {object} this.config
    */
   setConfig(config) {
@@ -174,53 +174,44 @@ class NetJSONGraph {
    *
    * netjsongraph.js render function
    *
+   * @this {object}      The instantiated object of NetJSONGraph
    */
   render() {
     // Loading();
 
-    this.utils.JSONParamParse(this.JSONParam).then(JSONData => {
-      this.config.onLoad.call(this).prepareData(JSONData);
+    this.utils
+      .JSONParamParse(this.JSONParam)
+      .then(JSONData => {
+        this.config.onLoad.call(this).prepareData(JSONData);
 
-      if (this.config.metadata) {
-        this.utils.NetJSONMetadata(JSONData);
-      }
+        if (this.config.metadata) {
+          this.utils.NetJSONMetadata(JSONData);
+        }
 
-      if (JSONData.date) {
-        const dateNode = document.createElement("span"),
-          dateResult = this.utils.dateParse(
-            JSONData.date,
-            this.config.dateRegular
-          );
-        dateNode.setAttribute("title", dateResult);
-        dateNode.setAttribute("class", "njg-date");
-        dateNode.innerHTML = "Incoming Time: " + dateResult;
-        this.el.appendChild(dateNode);
-      }
+        // if (JSONData.date) {
+        //   const dateNode = document.createElement("span"),
+        //     dateResult = this.utils.dateParse(
+        //       JSONData.date,
+        //       this.config.dateRegular
+        //     );
+        //   dateNode.setAttribute("title", dateResult);
+        //   dateNode.setAttribute("class", "njg-date");
+        //   dateNode.innerHTML = "Incoming Time: " + dateResult;
+        //   this.el.appendChild(dateNode);
+        // }
 
-      // unLoading();
+        // unLoading();
 
-      if (this.config.dealDataByWorker) {
-        this.utils.dealDataByWorker(JSONData, this.config.dealDataByWorker);
-      } else {
-        this.data = Object.freeze(JSONData);
-        this.utils.NetJSONRender();
-      }
-
-      // this.utils.addViewEye();
-      this.utils.switchRenderMode();
-      // this.utils.addSearchFunc();
-
-      if (this.config.listenUpdateUrl) {
-        const socket = io(this.config.listenUpdateUrl);
-        socket.on("connect", function() {
-          console.log("client connect");
-        });
-        socket.on("disconnect", function() {
-          console.log("client disconnected.");
-        });
-        socket.on("netjsonChange", this.utils.JSONDataUpdate.bind(this.utils));
-      }
-    });
+        if (this.config.dealDataByWorker) {
+          this.utils.dealDataByWorker(JSONData, this.config.dealDataByWorker);
+        } else {
+          this.data = Object.freeze(JSONData);
+          this.utils.NetJSONRender();
+        }
+      })
+      .catch(error => {
+        console.error(error);
+      });
   }
 
   setUtils() {
@@ -353,17 +344,19 @@ class NetJSONGraph {
         return (
           dateNumberObject["dateYear"] +
           "." +
-          this.numberMinDigit(dateNumberObject["dateMonth"]) +
+          _this.utils.numberMinDigit(dateNumberObject["dateMonth"]) +
           "." +
-          this.numberMinDigit(dateNumberObject["dateDay"]) +
+          _this.utils.numberMinDigit(dateNumberObject["dateDay"]) +
           " " +
-          this.numberMinDigit(dateNumberObject["dateHour"]) +
+          _this.utils.numberMinDigit(dateNumberObject["dateHour"]) +
           ":" +
-          this.numberMinDigit(dateParseArr[5]) +
+          _this.utils.numberMinDigit(dateParseArr[5]) +
           ":" +
-          this.numberMinDigit(dateParseArr[6]) +
+          _this.utils.numberMinDigit(dateParseArr[6]) +
           "." +
-          (dateParseArr[7] ? this.numberMinDigit(dateParseArr[7], 3) : "")
+          (dateParseArr[7]
+            ? _this.utils.numberMinDigit(dateParseArr[7], 3)
+            : "")
         );
       },
 
@@ -467,11 +460,11 @@ class NetJSONGraph {
         worker.addEventListener("message", e => {
           _this.data = Object.freeze(e.data);
 
-          if (JSONData.date && JSONData.date !== _this.data.date) {
-            document.getElementsByClassName("njg-date")[0].innerHTML =
-              "Incoming Time: " +
-              this.dateParse(_this.data.date, _this.config.dateRegular);
-          }
+          // if (JSONData.date && JSONData.date !== _this.data.date) {
+          //   document.getElementsByClassName("njg-date")[0].innerHTML =
+          //     "Incoming Time: " +
+          //     _this.utils.dateParse(_this.data.date, _this.config.dateRegular);
+          // }
 
           if (_this.config.metadata) {
             document.getElementsByClassName(
@@ -483,7 +476,7 @@ class NetJSONGraph {
               _this.data.links.length;
           }
 
-          this.NetJSONRender();
+          _this.utils.NetJSONRender();
         });
       },
 
@@ -492,37 +485,48 @@ class NetJSONGraph {
        * @name JSONDataUpdate
        *
        * Callback function executed when data update.Update Information and view.
-       * @param  {object}  JSONData     NetJSONData
+       * @param  {object}  Data     JSON data or url
        *
        */
 
-      JSONDataUpdate(JSONData) {
+      JSONDataUpdate(Data) {
         // Loading
 
-        _this.config.onLoad.call(_this).prepareData(JSONData);
+        _this.utils
+          .JSONParamParse(Data)
+          .then(JSONData => {
+            _this.config.onLoad.call(_this).prepareData(JSONData);
 
-        if (JSONData.date && JSONData.date !== _this.data.date) {
-          document.getElementsByClassName("njg-date")[0].innerHTML =
-            "Incoming Time: " +
-            this.dateParse(JSONData.date, _this.config.dateRegular);
-        }
-        if (_this.config.metadata) {
-          document.getElementsByClassName("njg-metadata")[0].style.visibility =
-            "visible";
-          document.getElementById("metadataNodesLength").innerHTML =
-            JSONData.nodes.length;
-          document.getElementById("metadataLinksLength").innerHTML =
-            JSONData.links.length;
-        }
+            // if (JSONData.date && JSONData.date !== _this.data.date) {
+            //   document.getElementsByClassName("njg-date")[0].innerHTML =
+            //     "Incoming Time: " +
+            //     _this.utils.dateParse(JSONData.date, _this.config.dateRegular);
+            // }
+            if (_this.config.metadata) {
+              document.getElementsByClassName(
+                "njg-metadata"
+              )[0].style.visibility = "visible";
+              document.getElementById("metadataNodesLength").innerHTML =
+                JSONData.nodes.length;
+              document.getElementById("metadataLinksLength").innerHTML =
+                JSONData.links.length;
+            }
 
-        // unLoading();
+            // unLoading();
 
-        if (_this.config.dealDataByWorker) {
-          this.dealDataByWorker(JSONData, _this.config.dealDataByWorker);
-        } else {
-          _this.data = Object.freeze(JSONData);
-          this.NetJSONRender();
-        }
+            if (_this.config.dealDataByWorker) {
+              _this.utils.dealDataByWorker(
+                JSONData,
+                _this.config.dealDataByWorker
+              );
+            } else {
+              _this.data = Object.freeze(JSONData);
+              _this.utils.NetJSONRender();
+            }
+          })
+          .catch(error => {
+            console.error(error);
+          });
       },
 
       /**
@@ -547,7 +551,7 @@ class NetJSONGraph {
         if (_this.config.render) {
           _this.config.render(graphChartContainer, _this.data, _this);
         } else {
-          console.error("No render function!");
+          throw new Error("No render function!");
         }
 
         return graphChartContainer;
@@ -617,127 +621,44 @@ class NetJSONGraph {
 
       /**
        * @function
-       * @name switchRenderMode
-       * Switch rendering mode -- Canvas or Svg.
+       * @name searchElements
+       * Add search function for new elements.
        *
-       * @return {object} switchWrapper DOM
+       * @param {string} url listen url
+       *
+       * @return {function} searchFunc
        */
 
-      switchRenderMode() {
-        const switchWrapper = document.createElement("div"),
-          checkInput = document.createElement("input"),
-          checkLabel = document.createElement("label"),
-          canvasMode = document.createElement("b"),
-          svgMode = document.createElement("b");
+      searchElements(url) {
+        window.history.pushState({ searchValue: "" }, "");
 
-        switchWrapper.setAttribute("class", "switch-wrap");
-        checkInput.setAttribute("id", "switch");
-        checkInput.setAttribute("type", "checkbox");
-        checkLabel.setAttribute("for", "switch");
-        canvasMode.innerHTML = "Canvas";
-        svgMode.innerHTML = "Svg";
-        checkInput.onchange = () => {
-          _this.config.svgRender = !_this.config.svgRender;
-          this.NetJSONRender();
+        window.onpopstate = event => {
+          updateSearchedElements(event.state.searchValue);
         };
-        if (_this.config.svgRender) {
-          checkInput.checked = true;
-        } else {
-          checkInput.checked = false;
+
+        return function searchFunc(key) {
+          let searchValue = key.trim();
+
+          if (
+            !history.state ||
+            (history.state && history.state.searchValue !== searchValue)
+          ) {
+            history.pushState({ searchValue }, "");
+            return updateSearchedElements(searchValue);
+          }
+        };
+
+        function updateSearchedElements(searchValue) {
+          return fetch(url + searchValue)
+            .then(data => data.json())
+            .then(data => {
+              _this.utils.JSONDataUpdate(data);
+            })
+            .catch(error => {
+              throw error;
+            });
         }
-        switchWrapper.appendChild(canvasMode);
-        switchWrapper.appendChild(checkInput);
-        switchWrapper.appendChild(checkLabel);
-        switchWrapper.appendChild(svgMode);
-        _this.el.appendChild(switchWrapper);
-
-        return switchWrapper;
       }
-
-      /**
-       * @function
-       * @name addViewEye
-       * Add viewEye icon to change graph or map mode.
-       *
-       * @return {object} selectIconContainer DOM
-       */
-
-      // addViewEye(){
-      //     let selectIconContainer = document.createElement("div"),
-      //         iconEye = document.createElement("span");
-      //     iconEye.setAttribute("class", "iconfont icon-eye");
-      //     selectIconContainer.setAttribute("class", "njg-selectIcon");
-      //     selectIconContainer.appendChild(iconEye);
-      //     _this.el.appendChild(selectIconContainer);
-
-      //     iconEye.onclick = () => {
-      //         _this.config.mapModeRender = !_this.config.mapModeRender;
-      //         NetJSONCache.viewIndoormap = false;
-      //         this.NetJSONRender();
-      //     }
-
-      //     return selectIconContainer;
-      // },
-
-      /**
-       * @function
-       * @name addSearchFunc
-       * Add search function for elements.
-       *
-       * @return {object} searchContainer DOM
-       */
-
-      // addSearchFunc() {
-      //   let searchContainer = document.createElement("div"),
-      //     searchInput = document.createElement("input"),
-      //     searchBtn = document.createElement("button"),
-      //     utils = this;
-
-      //   searchInput.setAttribute("class", "njg-searchInput");
-      //   searchInput.placeholder = "Input value for searching special elements.";
-      //   searchBtn.setAttribute("class", "njg-searchBtn");
-      //   searchBtn.innerHTML = "search";
-      //   searchContainer.setAttribute("class", "njg-searchContainer");
-      //   searchContainer.appendChild(searchInput);
-      //   searchContainer.appendChild(searchBtn);
-      //   _this.el.appendChild(searchContainer);
-
-      //   searchInput.onchange = () => {
-      //     // do something to deal user input value.
-      //   };
-
-      //   searchBtn.onclick = () => {
-      //     let searchValue = searchInput.value.trim();
-
-      //     if (
-      //       !history.state ||
-      //       (history.state && history.state.searchValue !== searchValue)
-      //     ) {
-      //       history.pushState({ searchValue }, "");
-      //       updateSearchedElements(searchValue);
-      //       searchInput.value = "";
-      //     }
-      //   };
-
-      //   history.pushState({ searchValue: "" }, "");
-
-      //   window.onpopstate = event => {
-      //     updateSearchedElements(event.state.searchValue);
-      //   };
-
-      //   return searchContainer;
-
-      //   function updateSearchedElements(searchValue) {
-      //     fetch(
-      //       "https://ee3bdf59-d14c-4280-b514-52bd3dfc2c17.mock.pstmn.io/?search=" +
-      //         searchValue
-      //     )
-      //       .then(data => data.json())
-      //       .then(data => {
-      //         utils.JSONDataUpdate(data);
-      //       });
-      //   }
-      // }
     };
   }
 }

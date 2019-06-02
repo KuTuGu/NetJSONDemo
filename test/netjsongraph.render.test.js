@@ -20,10 +20,10 @@ const graph = new NetJSONGraph(JSONFILE, {
 
 describe("Test netjsongraph render", () => {
   test("netjsongraph.js render function", () => {
-    expect(graph.render())
+    expect(graph.render());
 
     // re render
-    expect(graph.utils.NetJSONRender())
+    expect(() => {graph.utils.NetJSONRender()}).toThrow();
   })
 })
 
@@ -52,7 +52,7 @@ describe("Test netjsongraph JSONParamParse", () => {
       expect(data).toEqual(JSONData);
     })
     JSONParamParse("false").catch(e => {
-      expect(e).toMatch('error')
+      expect(e).toMatch("Fetch json file wrong!")
     })
 
     let json = {
@@ -61,6 +61,16 @@ describe("Test netjsongraph JSONParamParse", () => {
 
     JSONParamParse(json).then(data => {
       expect(data).toBe(json);
+    })
+  })
+})
+
+describe("Test netjsongraph searchElements", () => {
+  test("Add search function for new elements.", () => {
+    let searchFunc = graph.utils.searchElements("test");
+
+    searchFunc("false").catch(e => {
+      expect(e).toMatch("Fetch json file wrong!")
     })
   })
 })
