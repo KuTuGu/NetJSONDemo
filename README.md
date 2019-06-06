@@ -30,22 +30,20 @@ netjsongraph.js accepts two arguments.
 - options (optional, object): custom options described below
     - el: container element, defaults to "body"
     - metadata: whether to show NetJSON NetworkGraph metadata or not, defaults to true
-    - defaultStyle: whether to use the default style or not, defaults to true
-    - svgRender: switch to Svg mode render?
-    - listenUpdateUrl: listen the url to update JSONData.
+    - svgRender: use SVG render?
+    - title: Custom graph title in echarts.
+    - graphConfig: Custom graph config in echarts. Customize your colorful style.
     - scaleExtent: see d3 Zoom scaleExtent, defaults to [0.25, 5]
-    - dateRegular: analyze date format.The exec result must be [date, year, month, day, hour, minute, second, millisecond?]
     - gravity: see d3 Zoom gravity, defaults to 0.1
     - edgeLength: the distance between the two nodes on the side, this distance will also be affected by repulsion
     - repulsion: the repulsion factor between nodes.
-    - circleRadius: the radius of circles (nodes) in pixel
+    - nodeSize: the size of nodes in pixel
     - labelDx: node labels offsetX(distance on x axis) in graph.
     - labelDy: node labels offsetY(distance on y axis) in graph.
-    - nodeClassProperty: if specified, nodes will have an additional CSS class that depends on the value of a specific NetJSON node property
-    - linkClassProperty: if specified, links will have an additional CSS class that depends on the value of a specific NetJSON link property
     - onInit: callback function executed on initialization, params: url and options
     - onLoad: callback function executed after data has been loaded, params: url and options
-    - onEnd: callback function executed when initial animation is complete, params: url and options
+    - nodeStyleProperty: Used to custom node style. 
+    - linkStyleProperty: Used to custom link style.
     - prepareData: function used to convert NetJSON NetworkGraph to the javascript data structured used internally, you won't need to modify it in most cases
     - onClickNode: function called when a node is clicked, you can customize it if you need
     - onClickLink: function called when a link is clicked, you can customize it if you need
@@ -54,7 +52,7 @@ netjsongraph.js accepts two arguments.
 
 Since there isn't a real server for interaction, I only wrote one example for test. I built a simple local server using the express framework and nodeJS. After a period of time, the JSON change event is triggered, and the data view in the demo is also changed.
 
-The code to build a local server can be found [here](https://github.com/KuTuGu/NetJSONDemo/tree/master/src/data/netjsonnode/).
+The code to build a local server can be found [here](https://github.com/KuTuGu/NetJSONDemo/tree/master/examples/data/netjsonnode/).
 
 Execute in this directory：
 ```
@@ -106,19 +104,3 @@ This is just a demo, you can also customize other events to trigger data changes
 [NetJSON sigma-bigData Demo](https://kutugu.github.io/NetJSONDemo/examples/netjson-sigma-bigData.html)
 
 [NetJSON multiple interfaces Demo](https://kutugu.github.io/NetJSONDemo/examples/netjson-multipleInterfaces.html)       
-
-### How to migrate the previous version
-
-Because of the different libraries used, some of the parameters of the previous version may disappear, especially some of the parameters of the Force map algorithm.But you don't have to delete them, it doesn't have a negative impact.
-
-These parameters have been removed for this demo：
-- animationAtStart: true
-- charge: -130,                                
-- linkStrength: 0.2,
-- friction: 0.9,  // d3 default
-- chargeDistance: Infinity,  // d3 default
-- theta: 0.8,  // d3 default
-
-If you want to update the data in real time, you only need to listen to a port number on the server, passing in the url as the parameter -- listenUpdateUrl.
-Of course you have to customize the trigger event -- "netjsonChange".
-          

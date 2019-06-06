@@ -39,9 +39,9 @@ function graphRender(graphContainer, JSONData, _this) {
           ? configs.nodeStyleProperty(node)
           : configs.nodeStyleProperty;
       nodeResult.symbolSize =
-        typeof configs.circleRadius === "function"
-          ? configs.circleRadius(node)
-          : configs.circleRadius;
+        typeof configs.nodeSize === "function"
+          ? configs.nodeSize(node)
+          : configs.nodeSize;
       nodeResult.name = node.name || node.id;
       nodeResult.value = node.value || node.name;
       if (node.category) {
@@ -64,17 +64,7 @@ function graphRender(graphContainer, JSONData, _this) {
       return linkResult;
     }),
     options = {
-      title: {
-        text: "NetJSONGraph",
-        link: "",
-        textStyle: {
-          color: "grey",
-          fontWeight: "bold",
-          fontSize: 30
-        },
-        left: "center",
-        top: "5%"
-      },
+      title: configs.title,
       aria: {
         show: true,
         description:
@@ -83,9 +73,6 @@ function graphRender(graphContainer, JSONData, _this) {
       toolbox: {
         show: true,
         feature: {
-          // dataView:{
-          //     show:true
-          // },
           restore: {
             show: true
           },
@@ -105,29 +92,20 @@ function graphRender(graphContainer, JSONData, _this) {
         data: categories
       },
       series: [
-        {
+        Object.assign(configs.graphConfig, {
           type: "graph",
-          name: "NetGraph Demo",
-          layout: "force",
-          cursor: "pointer",
-          label: {
-            show: true,
-            color: "#000000",
+          label: Object.assign(configs.graphConfig.label || {}, {
             offset: [configs.labelDx, configs.labelDy]
-          },
-          force: {
-            initLayout: "circular",
+          }),
+          force: Object.assign(configs.graphConfig.force || {}, {
             repulsion: configs.repulsion,
             gravity: configs.gravity,
             edgeLength: configs.edgeLength
-          },
-          roam: true,
-          draggable: true,
-          focusNodeAdjacency: true,
+          }),
           nodes,
           links,
           categories: categories.map(category => ({ name: category }))
-        }
+        })
       ]
     },
     graph = echarts.init(graphContainer, null, {
@@ -284,9 +262,9 @@ function mapRender(mapContainer, JSONData, _this) {
             Object.assign(
               {
                 radius:
-                  typeof configs.circleRadius === "function"
-                    ? configs.circleRadius(flatNodes[node_id])
-                    : configs.circleRadius
+                  typeof configs.nodeSize === "function"
+                    ? configs.nodeSize(flatNodes[node_id])
+                    : configs.nodeSize
               },
               typeof configs.nodeStyleProperty === "function"
                 ? configs.nodeStyleProperty(flatNodes[node_id])

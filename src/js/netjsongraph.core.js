@@ -3,15 +3,15 @@
 /**
  * Default options
  *
- * @param  {string}            el                  body        The container element                                  el: "body" [description]
+ * @param  {string}            el                  body        The container element
  * @param  {bool}              metadata            true        Display NetJSON metadata at startup?
- * @param  {bool}              defaultStyle        true        Does node use default css style? If not, you can income the style with JSON.
- * @param  {bool}              svgRender           false       Switch to Svg mode render?
- * @param  {object(RegExp)}    dateRegular         /(?:)/      Analyze date format.The exec result must be [date, year, month, day, hour, minute, second, millisecond?]
+ * @param  {bool}              svgRender           false       Use SVG render?
+ * @param  {object}            title               {}          Graph Title. @see {@link https://echarts.apache.org/en/option.html#title}
+ * @param  {object}            graphConfig         {}          Customize your colorful style. @see {@link https://echarts.apache.org/en/option.html#series-graph}
  * @param  {float}             gravity             0.1         The gravitational strength to the specified numerical value. @see {@link https://github.com/mbostock/d3/wiki/Force-Layout#gravity}
  * @param  {int|array}         edgeLength          [20, 60]    The distance between the two nodes on the side, this distance will also be affected by repulsion. @see {@link https://echarts.apache.org/option.html#series-graph.force.edgeLength}
  * @param  {int|array}         repulsion           200         The repulsion factor between nodes. @see {@link https://echarts.apache.org/option.html#series-graph.force.repulsion}
- * @param  {int|function}      circleRadius        node => 10  The radius of circles (nodes) in pixel
+ * @param {int|Array|function} nodeSize            node => 10  The radius of node in pixel @see {@link https://echarts.apache.org/en/option.html#series-graph.symbolSize}
  * @param  {int}               labelDx             0           node labels offsetX(distance on x axis) in graph. @see {@link https://echarts.apache.org/option.html#series-graph.label.offset}
  * @param  {int}               labelDy             -10         node labels offsetY(distance on y axis) in graph.
  * @param  {object|function}   nodeStyleProperty   node => {}  Used to custom node style. @see {@link https://echarts.apache.org/option.html#series-graph.data.itemStyle}
@@ -24,20 +24,36 @@
  */
 const NetJSONGraphDefaultConfig = {
   metadata: true,
-  // defaultStyle: true,
-  // animationAtStart: true,
   svgRender: false,
+  title: {
+    text: "NetJSONGraph",
+    link: "",
+    textStyle: {
+      color: "grey",
+      fontWeight: "bold",
+      fontSize: 30
+    },
+    left: "center",
+    top: "5%"
+  },
+  graphConfig: {
+    layout: "force",
+    cursor: "pointer",
+    label: {
+      show: true,
+      color: "#000000"
+    },
+    roam: true,
+    draggable: true,
+    focusNodeAdjacency: true,
+    hoverAnimation: true,
+    legendHoverLink: true
+  },
   scaleExtent: [0.25, 18],
-  // charge: -130,
-  // linkDistance: 50,
-  // linkStrength: 0.2,
-  // friction: 0.9,  // d3 default
-  // chargeDistance: Infinity,  // d3 default
-  // theta: 0.8,  // d3 default
   gravity: 0.1,
   edgeLength: [20, 60],
   repulsion: 120,
-  circleRadius: 10,
+  nodeSize: 10,
   labelDx: 0,
   labelDy: -10,
   nodeStyleProperty: {},
@@ -91,10 +107,10 @@ const NetJSONGraphDefaultConfig = {
     }
     nodeLinkOverlay.style.visibility = "visible";
     nodeLinkOverlay.innerHTML = `
-            <div class="njg-inner">
-                ${this.utils.nodeInfo(node)}
-            </div>
-        `;
+        <div class="njg-inner">
+            ${this.utils.nodeInfo(node)}
+        </div>
+    `;
     const closeA = document.createElement("a");
     closeA.setAttribute("class", "njg-close");
     closeA.setAttribute("id", "nodeOverlay-close");
@@ -113,17 +129,17 @@ const NetJSONGraphDefaultConfig = {
   onClickLink: function(link) {
     let nodeLinkOverlay = document.getElementsByClassName("njg-overlay")[0];
 
-    if (nodeLinkOverlay) {
+    if (!nodeLinkOverlay) {
       nodeLinkOverlay = document.createElement("div");
       nodeLinkOverlay.setAttribute("class", "njg-overlay");
       this.el.appendChild(nodeLinkOverlay);
     }
     nodeLinkOverlay.style.visibility = "visible";
     nodeLinkOverlay.innerHTML = `
-            <div class="njg-inner">
-                ${this.utils.linkInfo(link)}
-            </div>
-        `;
+        <div class="njg-inner">
+            ${this.utils.linkInfo(link)}
+        </div>
+    `;
     const closeA = document.createElement("a");
     closeA.setAttribute("class", "njg-close");
     closeA.setAttribute("id", "linkOverlay-close");
@@ -257,6 +273,8 @@ class NetJSONGraph {
        * @name dateParse
        *
        * Parse the time in the browser's current time zone based on the incoming matching rules.
+       * The exec result must be [date, year, month, day, hour, minute, second, millisecond?]
+       *
        * @param  {string}          dateString
        * @param  {object(RegExp)}  parseRegular
        *
@@ -549,6 +567,7 @@ class NetJSONGraph {
         graphChartContainer.setAttribute("id", "graphChartContainer");
         _this.el.appendChild(graphChartContainer);
         if (_this.config.render) {
+          console.log(_this.data);
           _this.config.render(graphChartContainer, _this.data, _this);
         } else {
           throw new Error("No render function!");
