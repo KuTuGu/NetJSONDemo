@@ -55,7 +55,7 @@ const NetJSONGraphDefaultConfig = {
   repulsion: 120,
   nodeSize: 10,
   labelDx: 0,
-  labelDy: -10,
+  labelDy: 0,
   nodeStyleProperty: {},
   linkStyleProperty: {},
   /**
@@ -164,7 +164,13 @@ class NetJSONGraph {
    * @return {object} this.config
    */
   setConfig(config) {
-    Object.assign(this.config, config);
+    let graphConfig = Object.assign(
+        this.config.graphConfig,
+        config.graphConfig || {}
+      ),
+      title = Object.assign(this.config.title, config.title || {});
+    Object.assign(this.config, config, { graphConfig, title });
+
     if (!this.utils) {
       this.utils = this.setUtils();
     }
@@ -172,6 +178,7 @@ class NetJSONGraph {
     this.el =
       document.getElementById(this.config.el) ||
       document.getElementsByTagName("body")[0];
+    this.el.classList.add("njg-relativePosition");
 
     return this.config;
   }
@@ -194,7 +201,7 @@ class NetJSONGraph {
 
         (function addNodeLinkOverlay(_this) {
           let nodeLinkOverlay = document.createElement("div");
-          nodeLinkOverlay.setAttribute("class", "njg-overlay");
+          nodeLinkOverlay.setAttribute("class", "njg-overlay njg-container");
           _this.el.appendChild(nodeLinkOverlay);
         })(this);
 
@@ -593,8 +600,7 @@ class NetJSONGraph {
         const metadataContainer = document.createElement("div"),
           innerDiv = document.createElement("div"),
           closeA = document.createElement("a");
-        metadataContainer.setAttribute("class", "njg-metadata");
-        metadataContainer.setAttribute("style", "display: block");
+        metadataContainer.setAttribute("class", "njg-metadata njg-container");
         innerDiv.setAttribute("class", "njg-inner");
         closeA.setAttribute("class", "njg-close");
         closeA.setAttribute("id", "metadata-close");
