@@ -59,7 +59,7 @@ describe('NetJSONGraph Specification', () => {
     expect(graph.config).toHaveProperty("repulsion", 120);
     expect(graph.config.nodeSize).toBeDefined();
     expect(graph.config).toHaveProperty("labelDx", 0);
-    expect(graph.config).toHaveProperty("labelDy", -10);
+    expect(graph.config).toHaveProperty("labelDy", 0);
     expect(graph.config.nodeStyleProperty).toBeDefined();
     expect(graph.config.linkStyleProperty).toBeDefined();
     expect(graph.config.onInit).toBeInstanceOf(Function);

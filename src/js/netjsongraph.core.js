@@ -161,15 +161,19 @@ class NetJSONGraph {
    * @param {Object} config
    *
    * @this {object}      The instantiated object of NetJSONGraph
-   * @return {object} this.config
+   *
+   * @return {object}    this.config
    */
   setConfig(config) {
-    let graphConfig = Object.assign(
-        this.config.graphConfig,
-        config.graphConfig || {}
-      ),
-      title = Object.assign(this.config.title, config.title || {});
-    Object.assign(this.config, config, { graphConfig, title });
+    if (config) {
+      let graphConfig = Object.assign(
+          this.config.graphConfig,
+          config.graphConfig || {}
+        ),
+        title = Object.assign(this.config.title, config.title || {});
+
+      Object.assign(this.config, config, { graphConfig, title });
+    }
 
     if (!this.utils) {
       this.utils = this.setUtils();
