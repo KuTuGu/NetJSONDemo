@@ -29,15 +29,8 @@
 </head>
 <body>
     <div id="network-graph"></div>
-    <!-- <script type="text/javascript" src="../dist/netjsongraph.min.js"></script> -->
-    <script type="text/javascript" src="../../lib/js/echarts.min.js"></script>
-    <script type="text/javascript" src="../../lib/js/leaflet.min.js"></script>
-    <script type="text/javascript" src="../../lib/js/leaflet-mapDownload.js"></script>
-    <script type="text/javascript" src="../../lib/js/leaflet-draw.js"></script>
-    <script type="text/javascript" src="../src/js/netjsongraph.core.js"></script>
+    <script type="text/javascript" src="../dist/netjsongraph.min.js"></script>
     <script type="module">
-        import {graphRender, mapRender} from "../src/js/netjsongraph.render.dev.js";
-
         const graph = new NetJSONGraph("./data/netjson.json", {
             render: graphRender,
             el: "network-graph",
