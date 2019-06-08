@@ -99,24 +99,20 @@ const NetJSONGraphDefaultConfig = {
    */
   onClickNode: function(node) {
     let nodeLinkOverlay = document.getElementsByClassName("njg-overlay")[0];
-
-    if (!nodeLinkOverlay) {
-      nodeLinkOverlay = document.createElement("div");
-      nodeLinkOverlay.setAttribute("class", "njg-overlay");
-      this.el.appendChild(nodeLinkOverlay);
-    }
     nodeLinkOverlay.style.visibility = "visible";
     nodeLinkOverlay.innerHTML = `
         <div class="njg-inner">
             ${this.utils.nodeInfo(node)}
         </div>
     `;
+
     const closeA = document.createElement("a");
     closeA.setAttribute("class", "njg-close");
     closeA.setAttribute("id", "nodeOverlay-close");
     closeA.onclick = () => {
       nodeLinkOverlay.style.visibility = "hidden";
     };
+
     nodeLinkOverlay.appendChild(closeA);
   },
   /**
@@ -128,24 +124,20 @@ const NetJSONGraphDefaultConfig = {
    */
   onClickLink: function(link) {
     let nodeLinkOverlay = document.getElementsByClassName("njg-overlay")[0];
-
-    if (!nodeLinkOverlay) {
-      nodeLinkOverlay = document.createElement("div");
-      nodeLinkOverlay.setAttribute("class", "njg-overlay");
-      this.el.appendChild(nodeLinkOverlay);
-    }
     nodeLinkOverlay.style.visibility = "visible";
     nodeLinkOverlay.innerHTML = `
         <div class="njg-inner">
             ${this.utils.linkInfo(link)}
         </div>
     `;
+
     const closeA = document.createElement("a");
     closeA.setAttribute("class", "njg-close");
     closeA.setAttribute("id", "linkOverlay-close");
     closeA.onclick = () => {
       nodeLinkOverlay.style.visibility = "hidden";
     };
+
     nodeLinkOverlay.appendChild(closeA);
   }
 };
@@ -200,21 +192,15 @@ class NetJSONGraph {
       .then(JSONData => {
         this.config.onLoad.call(this).prepareData(JSONData);
 
+        (function addNodeLinkOverlay(_this) {
+          let nodeLinkOverlay = document.createElement("div");
+          nodeLinkOverlay.setAttribute("class", "njg-overlay");
+          _this.el.appendChild(nodeLinkOverlay);
+        })(this);
+
         if (this.config.metadata) {
           this.utils.NetJSONMetadata(JSONData);
         }
-
-        // if (JSONData.date) {
-        //   const dateNode = document.createElement("span"),
-        //     dateResult = this.utils.dateParse(
-        //       JSONData.date,
-        //       this.config.dateRegular
-        //     );
-        //   dateNode.setAttribute("title", dateResult);
-        //   dateNode.setAttribute("class", "njg-date");
-        //   dateNode.innerHTML = "Incoming Time: " + dateResult;
-        //   this.el.appendChild(dateNode);
-        // }
 
         // unLoading();
 
@@ -478,12 +464,6 @@ class NetJSONGraph {
         worker.addEventListener("message", e => {
           _this.data = Object.freeze(e.data);
 
-          // if (JSONData.date && JSONData.date !== _this.data.date) {
-          //   document.getElementsByClassName("njg-date")[0].innerHTML =
-          //     "Incoming Time: " +
-          //     _this.utils.dateParse(_this.data.date, _this.config.dateRegular);
-          // }
-
           if (_this.config.metadata) {
             document.getElementsByClassName(
               "njg-metadata"
@@ -515,11 +495,6 @@ class NetJSONGraph {
           .then(JSONData => {
             _this.config.onLoad.call(_this).prepareData(JSONData);
 
-            // if (JSONData.date && JSONData.date !== _this.data.date) {
-            //   document.getElementsByClassName("njg-date")[0].innerHTML =
-            //     "Incoming Time: " +
-            //     _this.utils.dateParse(JSONData.date, _this.config.dateRegular);
-            // }
             if (_this.config.metadata) {
               document.getElementsByClassName(
                 "njg-metadata"
@@ -567,7 +542,6 @@ class NetJSONGraph {
         graphChartContainer.setAttribute("id", "graphChartContainer");
         _this.el.appendChild(graphChartContainer);
         if (_this.config.render) {
-          console.log(_this.data);
           _this.config.render(graphChartContainer, _this.data, _this);
         } else {
           throw new Error("No render function!");
