@@ -179,9 +179,13 @@ class NetJSONGraph {
       this.utils = this.setUtils();
     }
 
-    this.el =
-      document.getElementById(this.config.el) ||
-      document.getElementsByTagName("body")[0];
+    if (typeof this.config.el === "object") {
+      this.el = this.config.el;
+    } else {
+      this.el =
+        document.getElementById(this.config.el) ||
+        document.getElementsByTagName("body")[0];
+    }
     this.el.classList.add("njg-relativePosition");
 
     return this.config;
