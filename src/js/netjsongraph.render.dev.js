@@ -173,7 +173,7 @@ function mapRender(mapContainer, JSONData, _this) {
       options: {
         shadowUrl: null,
         iconAnchor: new L.Point(12, 12),
-        iconUrl: "../lib/images/marker-icon.png"
+        iconUrl: "../../lib/css/images/marker-icon.png"
       }
     }),
     options = {
@@ -254,14 +254,14 @@ function mapRender(mapContainer, JSONData, _this) {
     RenderCache.leafLeyLayers = [];
     RenderCache.leafLeyLayers.push(
       L.tileLayer(
-        "https://a.tiles.mapbox.com/v3/foursquare.map-0y1jh28j/{z}/{x}/{y}.png",
-        {
-          attribution:
-            'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
-          // maxZoom: configs.scaleExtent[1],
-          key: "BC9A493B41014CAABB98F0471D759707",
-          styleId: 22677
-        }
+        "http://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineStreetPurplishBlue/MapServer/tile/{z}/{y}/{x}"
+        // {
+        //   attribution:
+        //     'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+        //   // maxZoom: configs.scaleExtent[1],
+        //   key: "BC9A493B41014CAABB98F0471D759707",
+        //   styleId: 22677
+        // }
       ).addTo(map)
     );
 
