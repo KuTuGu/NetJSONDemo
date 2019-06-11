@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>netjsongraph.js: Dark Colors</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.4.0/dist/leaflet.css"
+    integrity="sha512-puBpdR0798OZvTTbP4A8Ix/l+A4dHDD0DGqYW6RQ+9jxkRFclaxxQb/SJAWZfWAkuyeQUytO7+7N4QKrDh+drA=="
+    crossorigin=""/>
+    <link href="../lib/css/leaflet-draw.css" rel="stylesheet">
+    <!-- theme can be easily customized via css -->
+    <link href="../src/css/netjsongraph-theme.css" rel="stylesheet">
+    <link href="../src/css/netjsongraph.css" rel="stylesheet">
+    <style type="text/css">
+        html, body, #map {
+            height: 100%;
+            padding: 0;
+            margin: 0;
+        }
+        #graphChartContainer{
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+
+    <script type="text/javascript" src="../lib/js/leaflet-echarts3.min.js"></script>
+    <!-- <script type="text/javascript" src="../dist/netjsongraph.min.js"></script> -->
+    <!-- <script type="text/javascript" src="../lib/js/echarts.min.js"></script>
+    <script type="text/javascript" src="../lib/js/leaflet.min.js"></script> -->
+    <script type="text/javascript" src="../lib/js/leaflet-mapDownload.js"></script>
+    <script type="text/javascript" src="../lib/js/leaflet-draw.js"></script>
+    <script type="text/javascript" src="../src/js/netjsongraph.core.js"></script>
+    <script type="module">
+        import {graphRender, mapRender} from "../src/js/netjsongraph.render.dev.js";
+        
+        let graph = new NetJSONGraph("./data/netjson.json", {
+            render: mapRender,
+            metadata: false,
+        })
+
+        graph.render();
+    </script>
+</body>
+</html>
