@@ -41,7 +41,8 @@ const NetJSONGraphDefaultConfig = {
     cursor: "pointer",
     label: {
       show: true,
-      color: "#000000"
+      color: "#000000",
+      position: "top"
     },
     roam: true,
     draggable: true,
