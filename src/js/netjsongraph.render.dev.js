@@ -22,21 +22,18 @@ const RenderCache = {
  */
 function graphSetOption(customOption, echartsLayer, _this) {
   const configs = _this.config,
-    commonOption = {
-      title: configs.title,
-      aria: {
-        show: true,
-        description:
-          "This is a force-oriented graph chart that depicts the relationship between ip nodes."
+    commonOption = Object.assign(
+      {
+        tooltip: {
+          confine: true,
+          formatter: params =>
+            params.dataType === "edge"
+              ? _this.utils.linkInfo(params.data)
+              : _this.utils.nodeInfo(params.data)
+        }
       },
-      tooltip: {
-        confine: true,
-        formatter: params =>
-          params.dataType === "edge"
-            ? _this.utils.linkInfo(params.data)
-            : _this.utils.nodeInfo(params.data)
-      }
-    };
+      configs.echartsOption
+    );
 
   echartsLayer.setOption(Object.assign(commonOption, customOption));
   echartsLayer.on(
@@ -125,19 +122,10 @@ function graphRender(graphContainer, JSONData, _this) {
       renderer: configs.svgRender ? "svg" : "canvas"
     });
 
+  console.log(echarts, links, nodes);
+
   return graphSetOption(
     {
-      toolbox: {
-        show: true,
-        feature: {
-          restore: {
-            show: true
-          },
-          saveAsImage: {
-            show: true
-          }
-        }
-      },
       legend: {
         data: categories
       },
@@ -160,12 +148,13 @@ function graphRender(graphContainer, JSONData, _this) {
  * @return {object}  map object
  */
 function mapRender(mapContainer, JSONData, _this) {
-  console.log(L);
+  let configs = _this.config;
+
   if (!RenderCache.netjsonmap) {
     RenderCache.netjsonmap = L.map(mapContainer, {
       // renderer: _this.config.svgRender ? L.svg() : L.canvas()
       // }).setView([42.168, 260.536], 8);
-    }).setView([37.550339, 104.114129], 4);
+    }).setView(configs.mapCenter, configs.mapZoom);
   } else {
     RenderCache.netjsonmap = L.map(mapContainer, {
       // renderer: _this.config.svgRender ? L.svg() : L.canvas()
@@ -244,8 +233,7 @@ function mapRender(mapContainer, JSONData, _this) {
   var myChart = echartsLayer3.initECharts(chartsContainer);
 
   if (!RenderCache.viewIndoormap) {
-    let configs = _this.config,
-      { nodes, links } = JSONData,
+    let { nodes, links } = JSONData,
       flatNodes = {};
 
     if (JSONData.flatNodes) {
@@ -264,23 +252,6 @@ function mapRender(mapContainer, JSONData, _this) {
           maxZoom: configs.scaleExtent[1]
         }
       ).addTo(map)
-    );
-
-    console.log(
-      links.map(link => [
-        {
-          coord: [
-            flatNodes[link.source].location.lng,
-            flatNodes[link.source].location.lat
-          ]
-        },
-        {
-          coord: [
-            flatNodes[link.target].location.lng,
-            flatNodes[link.target].location.lat
-          ]
-        }
-      ])
     );
 
     let series = [
@@ -302,23 +273,20 @@ function mapRender(mapContainer, JSONData, _this) {
             curveness: 0.2
           }
         },
-        data: links.map(link => {
-          console.log(link);
-          return [
-            {
-              coord: [
-                flatNodes[link.source].location.lng,
-                flatNodes[link.source].location.lat
-              ]
-            },
-            {
-              coord: [
-                flatNodes[link.target].location.lng,
-                flatNodes[link.target].location.lat
-              ]
-            }
-          ];
-        })
+        data: links.map(link => [
+          {
+            coord: [
+              flatNodes[link.source].location.lng,
+              flatNodes[link.source].location.lat
+            ]
+          },
+          {
+            coord: [
+              flatNodes[link.target].location.lng,
+              flatNodes[link.target].location.lat
+            ]
+          }
+        ])
       },
       {
         type: "lines",
@@ -338,23 +306,20 @@ function mapRender(mapContainer, JSONData, _this) {
             curveness: 0.2
           }
         },
-        data: links.map(link => {
-          console.log(link);
-          return [
-            {
-              coord: [
-                flatNodes[link.source].location.lng,
-                flatNodes[link.source].location.lat
-              ]
-            },
-            {
-              coord: [
-                flatNodes[link.target].location.lng,
-                flatNodes[link.target].location.lat
-              ]
-            }
-          ];
-        })
+        data: links.map(link => [
+          {
+            coord: [
+              flatNodes[link.source].location.lng,
+              flatNodes[link.source].location.lat
+            ]
+          },
+          {
+            coord: [
+              flatNodes[link.target].location.lng,
+              flatNodes[link.target].location.lat
+            ]
+          }
+        ])
       },
       {
         type: "effectScatter",
@@ -391,11 +356,6 @@ function mapRender(mapContainer, JSONData, _this) {
       {
         geo: {
           map: "",
-          label: {
-            emphasis: {
-              show: false
-            }
-          },
           roam: true,
           itemStyle: {
             normal: {

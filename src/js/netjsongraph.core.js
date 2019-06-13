@@ -25,16 +25,36 @@
 const NetJSONGraphDefaultConfig = {
   metadata: true,
   svgRender: false,
-  title: {
-    text: "NetJSONGraph",
-    link: "",
-    textStyle: {
-      color: "grey",
-      fontWeight: "bold",
-      fontSize: 30
+  echartsOption: {
+    title: {
+      text: "NetJSONGraph",
+      link: "",
+      textStyle: {
+        color: "grey",
+        fontWeight: "bold",
+        fontSize: 30
+      },
+      left: "center",
+      top: "5%"
     },
-    left: "center",
-    top: "5%"
+    aria: {
+      show: true,
+      description:
+        "This is a force-oriented graph chart that depicts the relationship between ip nodes."
+    },
+    toolbox: {
+      show: true,
+      feature: {
+        restore: {
+          show: true,
+          title: "Restore view"
+        },
+        saveAsImage: {
+          show: true,
+          title: "Save image"
+        }
+      }
+    }
   },
   graphConfig: {
     layout: "force",
@@ -50,6 +70,8 @@ const NetJSONGraphDefaultConfig = {
     hoverAnimation: true,
     legendHoverLink: true
   },
+  mapCenter: [0, 0],
+  mapZoom: 4,
   scaleExtent: [0.25, 18],
   gravity: 0.1,
   edgeLength: [20, 60],
@@ -171,9 +193,12 @@ class NetJSONGraph {
           this.config.graphConfig,
           config.graphConfig || {}
         ),
-        title = Object.assign(this.config.title, config.title || {});
+        echartsOption = Object.assign(
+          this.config.echartsOption,
+          config.echartsOption || {}
+        );
 
-      Object.assign(this.config, config, { graphConfig, title });
+      Object.assign(this.config, config, { graphConfig, echartsOption });
     }
 
     if (!this.utils) {
