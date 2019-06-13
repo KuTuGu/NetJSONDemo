@@ -80,7 +80,9 @@ const NetJSONGraphDefaultConfig = {
   labelDx: 0,
   labelDy: 0,
   nodeStyleProperty: {},
-  linkStyleProperty: {},
+  linkStyleProperty: {
+    width: 3
+  },
   /**
    * @function
    * @name onInit

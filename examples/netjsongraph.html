@@ -13,14 +13,14 @@
         const graph = new NetJSONGraph("./data/netjsonmap.json", {
             render: graphRender,
             // svgRender: true,
-            // linkStyleProperty: e => {
-            //     console.log("link: ", e);
-            //     return {
-            //         color: 'blue',
-            //         opacity: 0.5,
-            //         weight: 3
-            //     }
-            // },
+            linkStyleProperty: e => {
+                // console.log("link: ", e);
+                return {
+                    // color: 'blue',
+                    // opacity: 0.5,
+                    width: 3
+                }
+            },
             // nodeStyleProperty: e => {
             //     console.log("node: ", e);
             //     return {

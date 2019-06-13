@@ -21,19 +21,24 @@ const RenderCache = {
  *
  */
 function graphSetOption(customOption, echartsLayer, _this) {
-  const configs = _this.config,
-    commonOption = Object.assign(
-      {
-        tooltip: {
-          confine: true,
-          formatter: params =>
-            params.dataType === "edge"
-              ? _this.utils.linkInfo(params.data)
-              : _this.utils.nodeInfo(params.data)
-        }
-      },
-      configs.echartsOption
-    );
+  let configs = _this.config,
+    nodeStyle =
+      typeof configs.nodeStyleProperty === "function"
+        ? configs.nodeStyleProperty(node)
+        : configs.nodeStyleProperty;
+  const commonOption = Object.assign(
+    {
+      tooltip: {
+        confine: true,
+        formatter: params =>
+          params.dataType === "edge"
+            ? _this.utils.linkInfo(params.data)
+            : _this.utils.nodeInfo(params.data),
+        backgroundColor: nodeStyle.color
+      }
+    },
+    configs.echartsOption
+  );
 
   echartsLayer.setOption(Object.assign(commonOption, customOption));
   echartsLayer.on(
@@ -121,8 +126,6 @@ function graphRender(graphContainer, JSONData, _this) {
     graph = echarts.init(graphContainer, null, {
       renderer: configs.svgRender ? "svg" : "canvas"
     });
-
-  console.log(echarts, links, nodes);
 
   return graphSetOption(
     {
