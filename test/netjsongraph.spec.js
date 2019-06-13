@@ -3,23 +3,44 @@
 import "../src/js/netjsongraph.core.js";
 
 describe('NetJSONGraph Specification', () => {
-  const NetJSONGraphTitle = {
-    text: "NetJSONGraph",
-    link: "",
-    textStyle: {
-      color: "grey",
-      fontWeight: "bold",
-      fontSize: 30
+  const NetJSONGraphOption = {
+    title: {
+      text: "NetJSONGraph",
+      link: "",
+      textStyle: {
+        color: "grey",
+        fontWeight: "bold",
+        fontSize: 30
+      },
+      left: "center",
+      top: "5%"
     },
-    left: "center",
-    top: "5%"
+    aria: {
+      show: true,
+      description:
+        "This is a force-oriented graph chart that depicts the relationship between ip nodes."
+    },
+    toolbox: {
+      show: true,
+      feature: {
+        restore: {
+          show: true,
+          title: "Restore view"
+        },
+        saveAsImage: {
+          show: true,
+          title: "Save image"
+        }
+      }
+    }
   };
   const NetJSONGraphConfig = {
     layout: "force",
     cursor: "pointer",
     label: {
       show: true,
-      color: "#000000"
+      position: "top",
+      color: "#000000",
     },
     roam: true,
     draggable: true,
@@ -51,7 +72,7 @@ describe('NetJSONGraph Specification', () => {
  
     expect(graph.config).toHaveProperty("metadata", true);
     expect(graph.config).toHaveProperty("svgRender", false);
-    expect(graph.config.title).toEqual(NetJSONGraphTitle);
+    expect(graph.config.echartsOption).toEqual(NetJSONGraphOption);
     expect(graph.config.graphConfig).toEqual(NetJSONGraphConfig);
     expect(graph.config.scaleExtent).toBeInstanceOf(Array);
     expect(graph.config).toHaveProperty("gravity", 0.1);
