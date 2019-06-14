@@ -74,7 +74,7 @@ describe('NetJSONGraph Specification', () => {
     expect(graph.config).toHaveProperty("svgRender", false);
     expect(graph.config.echartsOption).toEqual(NetJSONGraphOption);
     expect(graph.config.graphConfig).toEqual(NetJSONGraphConfig);
-    expect(graph.config.scaleExtent).toBeInstanceOf(Array);
+    expect(graph.config.mapScaleExtent).toBeInstanceOf(Array);
     expect(graph.config).toHaveProperty("gravity", 0.1);
     expect(graph.config.edgeLength).toBeInstanceOf(Array);
     expect(graph.config).toHaveProperty("repulsion", 120);
@@ -86,8 +86,7 @@ describe('NetJSONGraph Specification', () => {
     expect(graph.config.onInit).toBeInstanceOf(Function);
     expect(graph.config.onLoad).toBeInstanceOf(Function);
     expect(graph.config.prepareData).toBeInstanceOf(Function);
-    expect(graph.config.onClickNode).toBeInstanceOf(Function);
-    expect(graph.config.onClickLink).toBeInstanceOf(Function);
+    expect(graph.config.onClickElement).toBeInstanceOf(Function);
 
     expect(graph.utils.NetJSONMetadata).toBeInstanceOf(Function);
     expect(graph.utils.nodeInfo).toBeInstanceOf(Function);

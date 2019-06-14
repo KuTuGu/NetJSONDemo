@@ -6,21 +6,25 @@
  * @param  {string}            el                  body        The container element
  * @param  {bool}              metadata            true        Display NetJSON metadata at startup?
  * @param  {bool}              svgRender           false       Use SVG render?
- * @param  {object}            title               {}          Graph Title. @see {@link https://echarts.apache.org/en/option.html#title}
+ * @param  {object}            echartsOption       {}          A global configuration of Echarts. @see {@link https://echarts.apache.org/en/option.html#title}
  * @param  {object}            graphConfig         {}          Customize your colorful style. @see {@link https://echarts.apache.org/en/option.html#series-graph}
+ * @param  {array}             mapCenter           [0, 0]      Map init center.
+ * @param  {int}               mapZoom             4           Map init zoom.
+ * @param  {array}             mapLineConfig       []          Support multiple lines superimposed style. @see {@link https://www.echartsjs.com/option.html#series-lines}
+ * @param  {object}            mapNodeConfig       {}          Map node style. @see {@link https://www.echartsjs.com/option.html#series-effectScatter}
+ * @param  {array}             mapScaleExtent      []          Map zoom range.
  * @param  {float}             gravity             0.1         The gravitational strength to the specified numerical value. @see {@link https://github.com/mbostock/d3/wiki/Force-Layout#gravity}
  * @param  {int|array}         edgeLength          [20, 60]    The distance between the two nodes on the side, this distance will also be affected by repulsion. @see {@link https://echarts.apache.org/option.html#series-graph.force.edgeLength}
  * @param  {int|array}         repulsion           200         The repulsion factor between nodes. @see {@link https://echarts.apache.org/option.html#series-graph.force.repulsion}
  * @param {int|Array|function} nodeSize            node => 10  The radius of node in pixel @see {@link https://echarts.apache.org/en/option.html#series-graph.symbolSize}
  * @param  {int}               labelDx             0           node labels offsetX(distance on x axis) in graph. @see {@link https://echarts.apache.org/option.html#series-graph.label.offset}
- * @param  {int}               labelDy             -10         node labels offsetY(distance on y axis) in graph.
+ * @param  {int}               labelDy             0         node labels offsetY(distance on y axis) in graph.
  * @param  {object|function}   nodeStyleProperty   node => {}  Used to custom node style. @see {@link https://echarts.apache.org/option.html#series-graph.data.itemStyle}
  * @param  {object|function}   linkStyleProperty   link => {}  Used to custom link style. @see {@link https://echarts.apache.org/option.html#series-graph.links.lineStyle}
  * @param  {function}          onInit                          Callback function executed on initialization
  * @param  {function}          onLoad                          Callback function executed after data has been loaded
  * @param  {function}          prepareData                     Used to convert NetJSON NetworkGraph to the javascript data
- * @param  {function}          onClickNode                     Called when a node is clicked
- * @param  {function}          onClickLink                     Called when a link is clicked
+ * @param  {function}          onClickElement                  Called when a node or link is clicked
  */
 const NetJSONGraphDefaultConfig = {
   metadata: true,
@@ -72,7 +76,9 @@ const NetJSONGraphDefaultConfig = {
   },
   mapCenter: [0, 0],
   mapZoom: 4,
-  scaleExtent: [0.25, 18],
+  mapLineConfig: [],
+  mapNodeConfig: {},
+  mapScaleExtent: [0.25, 18],
   gravity: 0.1,
   edgeLength: [20, 60],
   repulsion: 120,
@@ -117,48 +123,29 @@ const NetJSONGraphDefaultConfig = {
   prepareData: function(JSONData) {},
   /**
    * @function
-   * @name onClickNode
-   * Called when a node is clicked
+   * @name onClickElement
+   * Called when a node or link is clicked
    *
-   * @this {object}      The instantiated object of NetJSONGraph
+   * @param {object} params   The information of element
+   *
+   * @this  {object}          The instantiated object of NetJSONGraph
    */
-  onClickNode: function(node) {
+  onClickElement: function(params) {
     let nodeLinkOverlay = document.getElementsByClassName("njg-overlay")[0];
     nodeLinkOverlay.style.visibility = "visible";
     nodeLinkOverlay.innerHTML = `
         <div class="njg-inner">
-            ${this.utils.nodeInfo(node)}
+            ${
+              params.dataType === "edge"
+                ? this.utils.linkInfo(params.data)
+                : this.utils.nodeInfo(params.data)
+            }
         </div>
     `;
 
     const closeA = document.createElement("a");
     closeA.setAttribute("class", "njg-close");
-    closeA.setAttribute("id", "nodeOverlay-close");
-    closeA.onclick = () => {
-      nodeLinkOverlay.style.visibility = "hidden";
-    };
-
-    nodeLinkOverlay.appendChild(closeA);
-  },
-  /**
-   * @function
-   * @name onClickLink
-   * Called when a node is clicked
-   *
-   * @this {object}      The instantiated object of NetJSONGraph
-   */
-  onClickLink: function(link) {
-    let nodeLinkOverlay = document.getElementsByClassName("njg-overlay")[0];
-    nodeLinkOverlay.style.visibility = "visible";
-    nodeLinkOverlay.innerHTML = `
-        <div class="njg-inner">
-            ${this.utils.linkInfo(link)}
-        </div>
-    `;
-
-    const closeA = document.createElement("a");
-    closeA.setAttribute("class", "njg-close");
-    closeA.setAttribute("id", "linkOverlay-close");
+    closeA.setAttribute("id", "nodelinkOverlay-close");
     closeA.onclick = () => {
       nodeLinkOverlay.style.visibility = "hidden";
     };
@@ -410,8 +397,8 @@ class NetJSONGraph {
       /**
        * Guaranteed minimum number of digits
        *
-       * @param  {number}      number
-       * @param  {number}      digit      min digit
+       * @param  {int}         number
+       * @param  {int}         digit      min digit
        * @param  {string}      filler
        *
        * @return {string}

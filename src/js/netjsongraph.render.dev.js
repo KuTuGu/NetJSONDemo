@@ -33,8 +33,8 @@ function graphSetOption(customOption, echartsLayer, _this) {
         formatter: params =>
           params.dataType === "edge"
             ? _this.utils.linkInfo(params.data)
-            : _this.utils.nodeInfo(params.data),
-        backgroundColor: nodeStyle.color
+            : _this.utils.nodeInfo(params.data)
+        // backgroundColor: black
       }
     },
     configs.echartsOption
@@ -44,12 +44,8 @@ function graphSetOption(customOption, echartsLayer, _this) {
   echartsLayer.on(
     "mouseup",
     function(params) {
-      if (params.componentType === "series" && params.seriesType === "graph") {
-        if (params.dataType === "edge") {
-          configs.onClickLink.call(_this, params.data);
-        } else {
-          configs.onClickNode.call(_this, params.data);
-        }
+      if (params.componentType === "series") {
+        configs.onClickElement.call(_this, params);
       }
     },
     { passive: true }
@@ -252,124 +248,52 @@ function mapRender(mapContainer, JSONData, _this) {
       L.tileLayer(
         "http://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineStreetPurplishBlue/MapServer/tile/{z}/{y}/{x}",
         {
-          maxZoom: configs.scaleExtent[1]
+          minZoom: configs.mapScaleExtent[0],
+          maxZoom: configs.mapScaleExtent[1]
         }
       ).addTo(map)
     );
 
     let series = [
-      {
-        type: "lines",
-        zlevel: 1,
-        effect: {
-          show: true,
-          period: 6,
-          trailLength: 0.7,
-          color: "#fff",
-          symbolSize: 3
-        },
-        lineStyle: {
-          normal: {
-            // var color = ['#a6c84c', '#ffa022', '#46bee9'];
-            color: "#a6c84c",
-            width: 0,
-            curveness: 0.2
-          }
-        },
-        data: links.map(link => [
-          {
-            coord: [
-              flatNodes[link.source].location.lng,
-              flatNodes[link.source].location.lat
-            ]
-          },
-          {
-            coord: [
-              flatNodes[link.target].location.lng,
-              flatNodes[link.target].location.lat
-            ]
-          }
-        ])
-      },
-      {
-        type: "lines",
-        zlevel: 2,
-        effect: {
-          show: true,
-          period: 6,
-          trailLength: 0,
-          symbol: configs.animatorPath,
-          symbolSize: 15
-        },
-        lineStyle: {
-          normal: {
-            color: "#a6c84c",
-            width: 1,
-            opacity: 0.4,
-            curveness: 0.2
-          }
-        },
-        data: links.map(link => [
-          {
-            coord: [
-              flatNodes[link.source].location.lng,
-              flatNodes[link.source].location.lat
-            ]
-          },
-          {
-            coord: [
-              flatNodes[link.target].location.lng,
-              flatNodes[link.target].location.lat
-            ]
-          }
-        ])
-      },
-      {
+      ...configs.mapLineConfig.map(lineConfig =>
+        Object.assign(lineConfig, {
+          type: "lines",
+          data: links.map(link => [
+            {
+              coord: [
+                flatNodes[link.source].location.lng,
+                flatNodes[link.source].location.lat
+              ]
+            },
+            {
+              coord: [
+                flatNodes[link.target].location.lng,
+                flatNodes[link.target].location.lat
+              ]
+            }
+          ])
+        })
+      ),
+      Object.assign(configs.mapNodeConfig, {
         type: "effectScatter",
         coordinateSystem: "geo",
-        zlevel: 2,
-        rippleEffect: {
-          brushType: "stroke"
-        },
-        label: {
-          normal: {
-            show: true,
-            position: "right",
-            formatter: "{b}"
-          }
-        },
         symbolSize: function(value) {
-          return value[2] / 8;
-        },
-        itemStyle: {
-          normal: {
-            color: "#a6c84c"
-          }
+          return typeof configs.nodeSize === "function"
+            ? configs.nodeSize(value[2])
+            : configs.nodeSize;
         },
         data: JSONData.nodes.map(node => {
           return {
             name: node.name,
-            value: [node.location.lng, node.location.lat, 60]
+            value: [node.location.lng, node.location.lat, node]
           };
         })
-      }
+      })
     ];
 
     graphSetOption(
       {
-        geo: {
-          map: "",
-          roam: true,
-          itemStyle: {
-            normal: {
-              areaColor: "#323c48",
-              borderColor: "#404a59"
-            },
-            emphasis: {
-              areaColor: "#2a333d"
-            }
-          }
-        },
+        geo: configs.echartsOption.geo || {},
         series: series
       },
       echartsLayer3,

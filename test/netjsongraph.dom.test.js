@@ -44,18 +44,24 @@ describe("Test netjsongraph dom operate", () => {
   graph.render();
 
   test("Click a node", () => {
-    expect(graph.config.onClickNode.call(graph, {
-      id: "1"
+    expect(graph.config.onClickElement.call(graph, {
+      dataType: "node",
+      data: {
+        id: "2"
+      }
     }))
-    const closeBtn = document.getElementById('nodeOverlay-close');
+    const closeBtn = document.getElementById('nodelinkOverlay-close');
     closeBtn.click();
   })
 
   test("Click a link", () => {
-    expect(graph.config.onClickLink.call(graph, {
-      id: "2"
+    expect(graph.config.onClickElement.call(graph, {
+      dataType: "edge",
+      data: {
+        id: "2"
+      }
     }))
-    const closeBtn = document.getElementById('linkOverlay-close');
+    const closeBtn = document.getElementById('nodelinkOverlay-close');
     closeBtn.click();
   })
 
