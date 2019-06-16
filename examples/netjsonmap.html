@@ -3,10 +3,7 @@
 <head>
     <title>netjsongraph.js: basic example</title>
     <meta charset="utf-8">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.4.0/dist/leaflet.css"
-    integrity="sha512-puBpdR0798OZvTTbP4A8Ix/l+A4dHDD0DGqYW6RQ+9jxkRFclaxxQb/SJAWZfWAkuyeQUytO7+7N4QKrDh+drA=="
-    crossorigin=""/>
-    <link href="../lib/css/leaflet-draw.css" rel="stylesheet">
+    <link rel="stylesheet" href="../node_modules/leaflet/dist/leaflet.css"/>
     <!-- theme can be easily customized via css -->
     <link href="../src/css/netjsongraph-theme.css" rel="stylesheet">
     <link href="../src/css/netjsongraph.css" rel="stylesheet">
@@ -16,24 +13,14 @@
     <script type="text/javascript">
         const map = new NetJSONGraph("./data/netjsonmap.json", {
             render: mapRender,
-            // linkStyleProperty: e => {
-            //     console.log("link: ", e);
-            //     return {
-            //         color: 'blue',
-            //         opacity: 0.5,
-            //         weight: 3
-            //     }
-            // },
-            // nodeStyleProperty: e => {
-            //     console.log("node: ", e);
-            //     return {
-            //         color: 'red',
-            //         fillColor: '#f03',
-            //         fillOpacity: 0.5,
-            //         radius: 8
-            //     };
-            // },
+            mapTileConfig: ["http://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineStreetPurplishBlue/MapServer/tile/{z}/{y}/{x}", {
+                minZoom: 0.25, 
+                maxZoom: 18,
+            }],
+            mapCenter: [46.86764405052012, 19.675998687744144],
+            mapZoom: 6,
         });
+        
         map.render();
     </script>
 </html>
