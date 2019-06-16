@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>netjsongraph.js: Dark Colors</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="../node_modules/leaflet/dist/leaflet.css"/>
+    <link href="../lib/css/leaflet-draw.css" rel="stylesheet">
+    <!-- theme can be easily customized via css -->
+    <link href="../src/css/netjsongraph-theme.css" rel="stylesheet">
+    <link href="../src/css/netjsongraph.css" rel="stylesheet">
+    <style type="text/css">
+        html, body, #map {
+            height: 100%;
+            padding: 0;
+            margin: 0;
+        }
+        #graphChartContainer{
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+        .njg-metadata{
+          left: 50px;
+        }
+    </style>
+</head>
+<body>
+    <script type="text/javascript" src="../dist/netjsongraph.min.js"></script>    
+    <script type="text/javascript" src="../lib/js/leaflet-draw.js"></script>
+    <script>
+        const graph = new NetJSONGraph("./data/netjsonmap.json", {
+            render: mapRender,
+            mapTileConfig: ["http://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineStreetPurplishBlue/MapServer/tile/{z}/{y}/{x}", {
+                minZoom: 0.25, 
+                maxZoom: 18,
+            }],
+            mapCenter: [46.86764405052012, 19.675998687744144],
+            mapZoom: 6,
+            onLoad: function(){
+              /*
+                It seems that the compatibility of this plugin(leaflet-draw) has problem in leaflet@1.51. 
+                It has nothing to do with netjsongraph.
+              */
+
+              let map = this.leaflet,
+                editableLayers = new L.FeatureGroup(),
+                MyCustomMarker = L.Icon.extend({
+                  options: {
+                    shadowUrl: null,
+                    iconAnchor: new L.Point(12, 12),
+                    iconUrl: "../lib/css/images/marker-icon.png"
+                  }
+                }),
+                options = {
+                  position: "topleft",
+                  draw: {
+                    polyline: {
+                      shapeOptions: {
+                        color: "#f357a1",
+                        weight: 3
+                      }
+                    },
+                    polygon: {
+                      allowIntersection: false, // Restricts shapes to simple polygons
+                      drawError: {
+                        color: "#e1e100", // Color the shape will turn when intersects
+                        message: "<strong>Oh snap!<strong> you can't draw that!" // Message that will show when intersect
+                      },
+                      shapeOptions: {
+                        color: "#bada55"
+                      }
+                    },
+                    circle: true, // Turns off this drawing tool
+                    rectangle: {
+                      shapeOptions: {
+                        clickable: false
+                      }
+                    },
+                    marker: {
+                      icon: new MyCustomMarker()
+                    }
+                  },
+                  edit: {
+                    featureGroup: editableLayers, //REQUIRED!!
+                    remove: true
+                  }
+                };
+
+              map.addLayer(editableLayers);
+              map.addControl(new L.Control.Draw(options));
+              map.on(L.Draw.Event.CREATED, function(e) {
+                var type = e.layerType,
+                  layer = e.layer;
+
+                if (type === "marker") {
+                  layer.bindPopup("A popup!");
+                }
+
+                editableLayers.addLayer(layer);
+              });
+            }
+        })
+
+        graph.render(); 
+    </script>
+</body>
+</html>

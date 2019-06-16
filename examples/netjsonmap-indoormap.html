@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>netjsongraph.js: Dark Colors</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="../node_modules/leaflet/dist/leaflet.css"/>
+    <!-- theme can be easily customized via css -->
+    <link href="../src/css/netjsongraph-theme.css" rel="stylesheet">
+    <link href="../src/css/netjsongraph.css" rel="stylesheet">
+    <style type="text/css">
+        html, body, #map {
+            height: 100%;
+            padding: 0;
+            margin: 0;
+        }
+        #graphChartContainer{
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+        #njg-indoorImgInput{
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <script type="text/javascript" src="../dist/netjsongraph.min.js"></script>
+    <script>
+        const graph = new NetJSONGraph("./data/netjsonmap.json", {
+          render: mapRender,
+          mapTileConfig: ["http://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineStreetPurplishBlue/MapServer/tile/{z}/{y}/{x}", {
+              minZoom: 0.25, 
+              maxZoom: 18,
+          }],
+          mapCenter: [46.86764405052012, 19.675998687744144],
+          mapZoom: 6,
+        })
+
+        graph.render(); 
+
+        (function addImageInput(_this){
+          let imgInput = document.createElement("input");
+          imgInput.setAttribute("type", "file");
+          imgInput.setAttribute("accept", "image/*");
+          imgInput.setAttribute("id", "njg-indoorImgInput");
+          _this.el.appendChild(imgInput);
+
+          imgInput.onchange = e => {
+            let readImg = new FileReader();
+
+            readImg.readAsDataURL(e.target.files[0]);
+            readImg.onload = e => {
+              presentIndoormap(e.target.result, _this);
+            }
+          };
+        })(graph)
+    </script>
+</body>
+</html>
