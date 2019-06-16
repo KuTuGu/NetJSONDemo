@@ -15,6 +15,7 @@ window.fetch = jest.fn(url => url === JSONFILE ?
 );
 
 const graph = new NetJSONGraph(JSONFILE, {
+  el: document.getElementsByTagName("body")[0],
   circleRadius: 5,
 });
 

@@ -40,26 +40,23 @@ describe("Test netjsongraph utils dom functions", () => {
 
 
 describe("Test netjsongraph dom operate", () => {
-  const graph = new NetJSONGraph();
+  const graph = new NetJSONGraph({
+    nodes: [],
+    links: [],
+  });
   graph.render();
 
   test("Click a node", () => {
-    expect(graph.config.onClickElement.call(graph, {
-      dataType: "node",
-      data: {
+    expect(graph.config.onClickElement.call(graph, "node", {
         id: "2"
-      }
     }))
     const closeBtn = document.getElementById('nodelinkOverlay-close');
     closeBtn.click();
   })
 
   test("Click a link", () => {
-    expect(graph.config.onClickElement.call(graph, {
-      dataType: "edge",
-      data: {
-        id: "2"
-      }
+    expect(graph.config.onClickElement.call(graph, "link", {
+      id: "2"
     }))
     const closeBtn = document.getElementById('nodelinkOverlay-close');
     closeBtn.click();

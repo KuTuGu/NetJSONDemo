@@ -302,6 +302,12 @@ const addNodeLinksJSONData = new Map([
             "cost": 1,
             "cost_text": "1.000"
           },
+          {
+            "source": "172.31.2.100",
+            "target": "172.31.2.100",
+            "cost": 0,
+            "cost_text": "0.000"
+          },
         ]
       }
     ],
