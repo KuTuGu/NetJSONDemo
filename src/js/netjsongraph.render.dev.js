@@ -1,13 +1,5 @@
 "use strict";
 
-// import PopupImage from "../../lib/css/images/marker-icon.png";
-
-const RenderCache = {
-  netjsonmap: null,
-  viewIndoormap: false,
-  leafLeyLayers: null
-};
-
 /**
  * @function
  * @name graphSetOption
@@ -21,35 +13,44 @@ const RenderCache = {
  *
  */
 function graphSetOption(customOption, echartsLayer, _this) {
-  let configs = _this.config,
-    nodeStyle =
-      typeof configs.nodeStyleProperty === "function"
-        ? configs.nodeStyleProperty(node)
-        : configs.nodeStyleProperty;
-  const commonOption = Object.assign(
-    {
-      tooltip: {
-        confine: true,
-        formatter: params =>
-          params.dataType === "edge"
-            ? _this.utils.linkInfo(params.data)
-            : _this.utils.nodeInfo(params.data)
-        // backgroundColor: black
-      }
-    },
-    configs.echartsOption
-  );
+  const configs = _this.config,
+    commonOption = _this.utils.deepMergeObj(
+      {
+        tooltip: {
+          confine: true,
+          formatter: params => {
+            if (params.componentSubType === "graph") {
+              return params.dataType === "edge"
+                ? _this.utils.linkInfo(params.data)
+                : _this.utils.nodeInfo(params.data);
+            } else {
+              return params.componentSubType === "lines"
+                ? _this.utils.linkInfo(params.data.link)
+                : _this.utils.nodeInfo(params.data.node);
+            }
+          }
+        }
+      },
+      configs.echartsOption
+    );
 
-  echartsLayer.setOption(Object.assign(commonOption, customOption));
+  echartsLayer.setOption(_this.utils.deepMergeObj(commonOption, customOption));
   echartsLayer.on(
-    "mouseup",
+    "click",
     function(params) {
-      if (params.componentType === "series") {
-        configs.onClickElement.call(_this, params);
+      let clickElement = configs.onClickElement.bind(_this);
+
+      if (params.componentSubType === "graph") {
+        clickElement(params.dataType === "edge" ? "link" : "node", params.data);
+      } else {
+        return params.componentSubType === "lines"
+          ? clickElement("link", params.data.link)
+          : clickElement("node", params.data.node);
       }
     },
     { passive: true }
   );
+
   window.onresize = () => {
     echartsLayer.resize();
   };
@@ -66,7 +67,6 @@ function graphSetOption(customOption, echartsLayer, _this) {
  * @param  {object}  JSONData        Render dependent configuration
  * @param  {object}  _this           NetJSONGraph object
  *
- * @return {object}  graph object
  */
 function graphRender(graphContainer, JSONData, _this) {
   let categories = JSONData.categories || [],
@@ -87,7 +87,7 @@ function graphRender(graphContainer, JSONData, _this) {
       if (node.category) {
         nodeResult.category = String(node.category);
       }
-      if (categories.indexOf(node.category) === -1) {
+      if (node.category && categories.indexOf(node.category) === -1) {
         categories.push(node.category);
       }
 
@@ -106,14 +106,6 @@ function graphRender(graphContainer, JSONData, _this) {
     series = [
       Object.assign(configs.graphConfig, {
         type: "graph",
-        label: Object.assign(configs.graphConfig.label || {}, {
-          offset: [configs.labelDx, configs.labelDy]
-        }),
-        force: Object.assign(configs.graphConfig.force || {}, {
-          repulsion: configs.repulsion,
-          gravity: configs.gravity,
-          edgeLength: configs.edgeLength
-        }),
         nodes,
         links,
         categories: categories.map(category => ({ name: category }))
@@ -121,18 +113,23 @@ function graphRender(graphContainer, JSONData, _this) {
     ],
     graph = echarts.init(graphContainer, null, {
       renderer: configs.svgRender ? "svg" : "canvas"
-    });
+    }),
+    legend = categories.length
+      ? {
+          data: categories
+        }
+      : undefined;
 
-  return graphSetOption(
+  _this.echarts = graphSetOption(
     {
-      legend: {
-        data: categories
-      },
-      series: series
+      legend,
+      series
     },
     graph,
     _this
   );
+
+  configs.onLoad.call(_this);
 }
 
 /**
@@ -144,165 +141,110 @@ function graphRender(graphContainer, JSONData, _this) {
  * @param  {object}  JSONData       Render dependent configuration
  * @param  {object}  _this          NetJSONGraph object
  *
- * @return {object}  map object
  */
 function mapRender(mapContainer, JSONData, _this) {
-  let configs = _this.config;
+  let configs = _this.config,
+    { nodes, links } = JSONData,
+    flatNodes = JSONData.flatNodes || {},
+    linesData = [],
+    nodesData = [];
 
-  if (!RenderCache.netjsonmap) {
-    RenderCache.netjsonmap = L.map(mapContainer, {
-      // renderer: _this.config.svgRender ? L.svg() : L.canvas()
-      // }).setView([42.168, 260.536], 8);
-    }).setView(configs.mapCenter, configs.mapZoom);
-  } else {
-    RenderCache.netjsonmap = L.map(mapContainer, {
-      // renderer: _this.config.svgRender ? L.svg() : L.canvas()
-    }).setView(
-      RenderCache.netjsonmap.getCenter(),
-      RenderCache.netjsonmap.getZoom()
-    );
+  if (!configs.mapTileConfig[0]) {
+    console.error(`You must add the tiles via the "mapTileConfig" param!`);
+    return;
   }
 
-  let map = RenderCache.netjsonmap,
-    editableLayers = new L.FeatureGroup(),
-    MyCustomMarker = L.Icon.extend({
-      options: {
-        shadowUrl: null,
-        iconAnchor: new L.Point(12, 12),
-        iconUrl: "../../lib/css/images/marker-icon.png"
-      }
-    }),
-    options = {
-      position: "topleft",
-      draw: {
-        polyline: {
-          shapeOptions: {
-            color: "#f357a1",
-            weight: 3
-          }
-        },
-        polygon: {
-          allowIntersection: false, // Restricts shapes to simple polygons
-          drawError: {
-            color: "#e1e100", // Color the shape will turn when intersects
-            message: "<strong>Oh snap!<strong> you can't draw that!" // Message that will show when intersect
-          },
-          shapeOptions: {
-            color: "#bada55"
-          }
-        },
-        circle: true, // Turns off this drawing tool
-        rectangle: {
-          shapeOptions: {
-            clickable: false
-          }
-        },
-        marker: {
-          icon: new MyCustomMarker()
-        }
-      },
-      edit: {
-        featureGroup: editableLayers, //REQUIRED!!
-        remove: true
-      }
-    };
-
-  map.addLayer(editableLayers);
-  map.addControl(new L.Control.Draw(options));
-  map.on(L.Draw.Event.CREATED, function(e) {
-    var type = e.layerType,
-      layer = e.layer;
-
-    if (type === "marker") {
-      layer.bindPopup("A popup!");
-    }
-
-    editableLayers.addLayer(layer);
-  });
-
-  L.easyPrint({
-    title: "Awesome print button",
-    position: "bottomleft",
-    exportOnly: true,
-    sizeModes: ["Current", "A4Portrait", "A4Landscape"]
-  }).addTo(map);
-
-  let echartsLayer3 = new L.echartsLayer3(map, echarts);
-  var chartsContainer = echartsLayer3.getEchartsContainer();
-  var myChart = echartsLayer3.initECharts(chartsContainer);
-
-  if (!RenderCache.viewIndoormap) {
-    let { nodes, links } = JSONData,
-      flatNodes = {};
-
-    if (JSONData.flatNodes) {
-      flatNodes = JSONData.flatNodes;
+  nodes.map(node => {
+    if (!node.location || !node.location.lng || !node.location.lat) {
+      console.error(`Node ${node.id} position is undefined!`);
     } else {
-      nodes.map(node => {
+      nodesData.push({
+        name: node.name,
+        value: [node.location.lng, node.location.lat],
+        symbolSize:
+          typeof configs.nodeSize === "function"
+            ? configs.nodeSize(node)
+            : configs.nodeSize,
+        itemStyle:
+          typeof configs.nodeStyleProperty === "function"
+            ? configs.nodeStyleProperty(node)
+            : configs.nodeStyleProperty,
+        node
+      });
+      if (!JSONData.flatNodes) {
         flatNodes[node.id] = JSON.parse(JSON.stringify(node));
+      }
+    }
+  });
+  links.map(link => {
+    if (!flatNodes[link.source]) {
+      console.error(`Node ${link.source} is not exist!`);
+    } else if (!flatNodes[link.target]) {
+      console.error(`Node ${link.target} is not exist!`);
+    } else {
+      linesData.push({
+        coords: [
+          [
+            flatNodes[link.source].location.lng,
+            flatNodes[link.source].location.lat
+          ],
+          [
+            flatNodes[link.target].location.lng,
+            flatNodes[link.target].location.lat
+          ]
+        ],
+        lineStyle:
+          typeof configs.linkStyleProperty === "function"
+            ? configs.linkStyleProperty(link)
+            : configs.linkStyleProperty,
+        link: link
       });
     }
+  });
 
-    RenderCache.leafLeyLayers = [];
-    RenderCache.leafLeyLayers.push(
-      L.tileLayer(
-        "http://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineStreetPurplishBlue/MapServer/tile/{z}/{y}/{x}",
-        {
-          minZoom: configs.mapScaleExtent[0],
-          maxZoom: configs.mapScaleExtent[1]
-        }
-      ).addTo(map)
-    );
-
-    let series = [
-      ...configs.mapLineConfig.map(lineConfig =>
-        Object.assign(lineConfig, {
-          type: "lines",
-          data: links.map(link => [
-            {
-              coord: [
-                flatNodes[link.source].location.lng,
-                flatNodes[link.source].location.lat
-              ]
-            },
-            {
-              coord: [
-                flatNodes[link.target].location.lng,
-                flatNodes[link.target].location.lat
-              ]
-            }
-          ])
-        })
-      ),
-      Object.assign(configs.mapNodeConfig, {
-        type: "effectScatter",
-        coordinateSystem: "geo",
-        symbolSize: function(value) {
-          return typeof configs.nodeSize === "function"
-            ? configs.nodeSize(value[2])
-            : configs.nodeSize;
-        },
-        data: JSONData.nodes.map(node => {
-          return {
-            name: node.name,
-            value: [node.location.lng, node.location.lat, node]
-          };
-        })
+  let series = [
+    ...configs.mapLineConfig.map(lineConfig =>
+      Object.assign(lineConfig, {
+        type: "lines",
+        coordinateSystem: "leaflet",
+        data: linesData
       })
-    ];
+    ),
+    Object.assign(configs.mapNodeConfig, {
+      type: "effectScatter",
+      coordinateSystem: "leaflet",
+      data: nodesData
+    })
+  ];
 
-    graphSetOption(
-      {
-        geo: configs.echartsOption.geo || {},
-        series: series
+  const graph = echarts.init(mapContainer, null, {
+    renderer: configs.svgRender ? "svg" : "canvas"
+  });
+
+  _this.echarts = graphSetOption(
+    {
+      leaflet: {
+        tiles: [
+          {
+            urlTemplate: configs.mapTileConfig[0],
+            options: configs.mapTileConfig[1]
+          }
+        ],
+        center: configs.mapCenter.reverse(),
+        zoom: configs.mapZoom,
+        roam: configs.mapRoam
       },
-      echartsLayer3,
-      _this
-    );
-  }
-  viewInputImage(map, _this);
+      toolbox: {
+        show: false
+      },
+      series
+    },
+    graph,
+    _this
+  );
+  _this.leaflet = graph._api.getCoordinateSystems()[0].getLeaflet();
 
-  return map;
+  configs.onLoad.call(_this);
 }
 
 /**
@@ -311,93 +253,73 @@ function mapRender(mapContainer, JSONData, _this) {
  *
  * Add Input to upload indoormap image.
  *
- * @param  {object}   netjsonmap
- * @param  {object}   _this           NetJSONGraph object
+ * @param  {string}   img             Indoor img src
+ * @param  {object}   _this           NetJSONMap object
  *
  * @return {object}   input DOM
  */
 
-function viewInputImage(netjsonmap, _this) {
-  let imgInput = document.getElementById("njg-indoorImgInput");
-  if (RenderCache.viewIndoormap) {
-    presentIndoormap(imgInput.files[0]);
-  } else if (!imgInput) {
-    imgInput = document.createElement("input");
-    imgInput.setAttribute("type", "file");
-    imgInput.setAttribute("accept", "image/*");
-    imgInput.setAttribute("id", "njg-indoorImgInput");
-    _this.el.appendChild(imgInput);
-  }
-  imgInput.onchange = e => {
-    presentIndoormap(e.target.files[0]);
-  };
+function presentIndoormap(img, _this) {
+  let netjsonmap = _this.leaflet,
+    tempImage = new Image();
 
-  return imgInput;
-
-  function presentIndoormap(img) {
-    let readImg = new FileReader(),
-      tempImage = new Image();
-    readImg.readAsDataURL(img);
-    readImg.onload = e => {
-      tempImage.src = e.target.result;
-      tempImage.onload = () => {
-        let southWest, northEast, bounds;
-        if (
-          tempImage.width / tempImage.height >
-          window.innerWidth / window.innerHeight
-        ) {
-          (southWest = netjsonmap.layerPointToLatLng(
-            L.point(
-              0,
-              window.innerHeight -
-                (window.innerHeight -
-                  (window.innerWidth * tempImage.height) / tempImage.width) /
-                  2 +
-                60
-            )
-          )),
-            (northEast = netjsonmap.layerPointToLatLng(
-              L.point(
-                window.innerWidth,
-                (window.innerHeight -
-                  (window.innerWidth * tempImage.height) / tempImage.width) /
-                  2 +
-                  60
-              )
-            ));
-          bounds = new L.LatLngBounds(southWest, northEast);
-        } else {
-          (southWest = netjsonmap.layerPointToLatLng(
-            L.point(
+  tempImage.src = img;
+  tempImage.onload = () => {
+    let southWest, northEast, bounds;
+    if (
+      tempImage.width / tempImage.height >
+      window.innerWidth / window.innerHeight
+    ) {
+      (southWest = netjsonmap.layerPointToLatLng(
+        L.point(
+          0,
+          window.innerHeight -
+            (window.innerHeight -
+              (window.innerWidth * tempImage.height) / tempImage.width) /
+              2 +
+            60
+        )
+      )),
+        (northEast = netjsonmap.layerPointToLatLng(
+          L.point(
+            window.innerWidth,
+            (window.innerHeight -
+              (window.innerWidth * tempImage.height) / tempImage.width) /
+              2 +
+              60
+          )
+        ));
+      bounds = new L.LatLngBounds(southWest, northEast);
+    } else {
+      (southWest = netjsonmap.layerPointToLatLng(
+        L.point(
+          (window.innerWidth -
+            (window.innerHeight * tempImage.width) / tempImage.height) /
+            2,
+          window.innerHeight + 60
+        )
+      )),
+        (northEast = netjsonmap.layerPointToLatLng(
+          L.point(
+            window.innerWidth -
               (window.innerWidth -
                 (window.innerHeight * tempImage.width) / tempImage.height) /
                 2,
-              window.innerHeight + 60
-            )
-          )),
-            (northEast = netjsonmap.layerPointToLatLng(
-              L.point(
-                window.innerWidth -
-                  (window.innerWidth -
-                    (window.innerHeight * tempImage.width) / tempImage.height) /
-                    2,
-                60
-              )
-            ));
-          bounds = new L.LatLngBounds(southWest, northEast);
-        }
-        for (let layer of RenderCache.leafLeyLayers) {
-          netjsonmap.removeLayer(layer);
-        }
-        RenderCache.leafLeyLayers.push(
-          L.imageOverlay(tempImage.src, bounds).addTo(netjsonmap)
-        );
-        RenderCache.viewIndoormap = true;
-      };
-    };
-  }
+            60
+          )
+        ));
+      bounds = new L.LatLngBounds(southWest, northEast);
+    }
+    netjsonmap.eachLayer(layer => {
+      if (layer._url) {
+        netjsonmap.removeLayer(layer);
+      }
+    });
+    L.imageOverlay(tempImage.src, bounds).addTo(netjsonmap);
+  };
 }
 
 // window.graphRender = graphRender;
 // window.mapRender = mapRender;
-export { graphRender, mapRender };
+// window.presentIndoormap = presentIndoormap;
+export { graphRender, mapRender, presentIndoormap };
