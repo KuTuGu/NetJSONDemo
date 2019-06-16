@@ -39,7 +39,7 @@ html, body{
 
 .njg-metadata{
     position: absolute;
-    left: 50px;
+    left: 10px;
     top: 10px;
     width: 200px;
     word-break: break-all;
