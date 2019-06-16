@@ -3,28 +3,29 @@
 /**
  * Default options
  *
- * @param  {string}            el                  body        The container element
+ * @param  {string}            el                  body        Container element. "body" defaultly.
  * @param  {bool}              metadata            true        Display NetJSON metadata at startup?
  * @param  {bool}              svgRender           false       Use SVG render?
+ *
  * @param  {object}            echartsOption       {}          A global configuration of Echarts. @see {@link https://echarts.apache.org/en/option.html#title}
- * @param  {object}            graphConfig         {}          Customize your colorful style. @see {@link https://echarts.apache.org/en/option.html#series-graph}
+ *
+ * @param  {object}            graphConfig         {}          Configuration of graph series(graphRender). @see {@link https://echarts.apache.org/en/option.html#series-graph}
+ *
  * @param  {array}             mapCenter           [0, 0]      Map init center.
  * @param  {int}               mapZoom             4           Map init zoom.
- * @param  {array}             mapLineConfig       []          Support multiple lines superimposed style. @see {@link https://www.echartsjs.com/option.html#series-lines}
- * @param  {object}            mapNodeConfig       {}          Map node style. @see {@link https://www.echartsjs.com/option.html#series-effectScatter}
- * @param  {array}             mapScaleExtent      []          Map zoom range.
- * @param  {float}             gravity             0.1         The gravitational strength to the specified numerical value. @see {@link https://github.com/mbostock/d3/wiki/Force-Layout#gravity}
- * @param  {int|array}         edgeLength          [20, 60]    The distance between the two nodes on the side, this distance will also be affected by repulsion. @see {@link https://echarts.apache.org/option.html#series-graph.force.edgeLength}
- * @param  {int|array}         repulsion           200         The repulsion factor between nodes. @see {@link https://echarts.apache.org/option.html#series-graph.force.repulsion}
- * @param {int|Array|function} nodeSize            node => 10  The radius of node in pixel @see {@link https://echarts.apache.org/en/option.html#series-graph.symbolSize}
- * @param  {int}               labelDx             0           node labels offsetX(distance on x axis) in graph. @see {@link https://echarts.apache.org/option.html#series-graph.label.offset}
- * @param  {int}               labelDy             0         node labels offsetY(distance on y axis) in graph.
- * @param  {object|function}   nodeStyleProperty   node => {}  Used to custom node style. @see {@link https://echarts.apache.org/option.html#series-graph.data.itemStyle}
- * @param  {object|function}   linkStyleProperty   link => {}  Used to custom link style. @see {@link https://echarts.apache.org/option.html#series-graph.links.lineStyle}
- * @param  {function}          onInit                          Callback function executed on initialization
- * @param  {function}          onLoad                          Callback function executed after data has been loaded
- * @param  {function}          prepareData                     Used to convert NetJSON NetworkGraph to the javascript data
- * @param  {function}          onClickElement                  Called when a node or link is clicked
+ * @param  {string|bool}       mapRoam             true        Is Map can zoom or move? @see {@link https://echarts.apache.org/en/option.html#series-graph.roam}
+ * @param  {array}             mapTileConfig       []          Map tiles config array, whose format is [url, option]. @see {@link https://leafletjs.com/reference-1.5.0.html#tilelayer}
+ * @param  {array}             mapLineConfig       []          Support multiple lines superimposed style. @see {@link https://echarts.apache.org/en/option.html#series-lines}
+ * @param  {object}            mapNodeConfig       {}          Map node style. @see {@link https://echarts.apache.org/en/option.html#series-effectScatter}
+ *
+ * @param {int|Array|function} nodeSize            node => 10  The size of nodes in pixel. @see {@link https://echarts.apache.org/en/option.html#series-graph.symbolSize}
+ * @param  {object|function}   nodeStyleProperty   node => {}  Used to custom node style. @see {@link https://echarts.apache.org/en/option.html#series-graph.data.itemStyle}
+ * @param  {object|function}   linkStyleProperty   link => {}  Used to custom link style. @see {@link https://echarts.apache.org/en/option.html#series-graph.links.lineStyle}
+ *
+ * @param  {function}          onInit                          Callback function executed on initialization.
+ * @param  {function}          onLoad                          Callback function executed when rendered.
+ * @param  {function}          prepareData                     Callback function executed after data has been loaded. Used to convert data to NetJSON Data.
+ * @param  {function}          onClickElement                  Called when a node or link is clicked.
  */
 const NetJSONGraphDefaultConfig = {
   metadata: true,
@@ -60,13 +61,18 @@ const NetJSONGraphDefaultConfig = {
       }
     }
   },
+
   graphConfig: {
     layout: "force",
-    cursor: "pointer",
     label: {
       show: true,
       color: "#000000",
       position: "top"
+    },
+    force: {
+      gravity: 0.1,
+      edgeLength: [20, 60],
+      repulsion: 120
     },
     roam: true,
     draggable: true,
@@ -74,21 +80,137 @@ const NetJSONGraphDefaultConfig = {
     hoverAnimation: true,
     legendHoverLink: true
   },
+
   mapCenter: [0, 0],
   mapZoom: 4,
-  mapLineConfig: [],
-  mapNodeConfig: {},
-  mapScaleExtent: [0.25, 18],
-  gravity: 0.1,
-  edgeLength: [20, 60],
-  repulsion: 120,
-  nodeSize: 10,
-  labelDx: 0,
-  labelDy: 0,
-  nodeStyleProperty: {},
-  linkStyleProperty: {
-    width: 3
+  mapRoam: true,
+  mapTileConfig: [],
+  mapLineConfig: [{}],
+  mapNodeConfig: {
+    label: {
+      show: true,
+      color: "#000000",
+      position: "top",
+      formatter: "{b}"
+    }
   },
+
+  nodeSize: 25,
+  nodeStyleProperty: () => {
+    let styles = [
+      {
+        color: {
+          type: "radial",
+          x: 0.5,
+          y: 0.5,
+          r: 0.5,
+          colorStops: [
+            {
+              offset: 0,
+              color: "#d66b30"
+            },
+            {
+              offset: 0.7,
+              color: "#d66b30"
+            },
+            {
+              offset: 0.71,
+              color: "#ebb598"
+            },
+            {
+              offset: 1,
+              color: "#ebb598"
+            }
+          ]
+        }
+      },
+      {
+        color: {
+          type: "radial",
+          x: 0.5,
+          y: 0.5,
+          r: 0.5,
+          colorStops: [
+            {
+              offset: 0,
+              color: "#a3c7dd"
+            },
+            {
+              offset: 0.7,
+              color: "#a3c7dd"
+            },
+            {
+              offset: 0.71,
+              color: "#e3edf6"
+            },
+            {
+              offset: 1,
+              color: "#e3edf6"
+            }
+          ]
+        }
+      },
+      {
+        color: {
+          type: "radial",
+          x: 0.5,
+          y: 0.5,
+          r: 0.5,
+          colorStops: [
+            {
+              offset: 0,
+              color: "#5c9660"
+            },
+            {
+              offset: 0.7,
+              color: "#5c9660"
+            },
+            {
+              offset: 0.71,
+              color: "#aecbb0"
+            },
+            {
+              offset: 1,
+              color: "#aecbb0"
+            }
+          ]
+        }
+      },
+      {
+        color: {
+          type: "radial",
+          x: 0.5,
+          y: 0.5,
+          r: 0.5,
+          colorStops: [
+            {
+              offset: 0,
+              color: "#d66b30"
+            },
+            {
+              offset: 0.7,
+              color: "#d66b30"
+            },
+            {
+              offset: 0.71,
+              color: "#ebb598"
+            },
+            {
+              offset: 1,
+              color: "#ebb598"
+            }
+          ]
+        }
+      }
+    ];
+    return styles[parseInt(Math.random() * styles.length)];
+  },
+  linkStyleProperty: () => ({
+    width: 5,
+    color: "#999",
+    shadowColor: "rgba(0, 0, 0, 0.5)",
+    shadowBlur: 10
+  }),
   /**
    * @function
    * @name onInit
@@ -126,19 +248,20 @@ const NetJSONGraphDefaultConfig = {
    * @name onClickElement
    * Called when a node or link is clicked
    *
-   * @param {object} params   The information of element
+   * @param {string} type   The type of element
+   * @param {object} data   Element data
    *
-   * @this  {object}          The instantiated object of NetJSONGraph
+   * @this  {object}        The instantiated object of NetJSONGraph
    */
-  onClickElement: function(params) {
+  onClickElement: function(type, data) {
     let nodeLinkOverlay = document.getElementsByClassName("njg-overlay")[0];
     nodeLinkOverlay.style.visibility = "visible";
     nodeLinkOverlay.innerHTML = `
         <div class="njg-inner">
             ${
-              params.dataType === "edge"
-                ? this.utils.linkInfo(params.data)
-                : this.utils.nodeInfo(params.data)
+              type === "link"
+                ? this.utils.linkInfo(data)
+                : this.utils.nodeInfo(data)
             }
         </div>
     `;
@@ -177,21 +300,12 @@ class NetJSONGraph {
    * @return {object}    this.config
    */
   setConfig(config) {
-    if (config) {
-      let graphConfig = Object.assign(
-          this.config.graphConfig,
-          config.graphConfig || {}
-        ),
-        echartsOption = Object.assign(
-          this.config.echartsOption,
-          config.echartsOption || {}
-        );
-
-      Object.assign(this.config, config, { graphConfig, echartsOption });
-    }
-
     if (!this.utils) {
       this.utils = this.setUtils();
+    }
+
+    if (config) {
+      this.utils.deepMergeObj(this.config, config);
     }
 
     if (typeof this.config.el === "object") {
@@ -220,7 +334,7 @@ class NetJSONGraph {
     this.utils
       .JSONParamParse(this.JSONParam)
       .then(JSONData => {
-        this.config.onLoad.call(this).prepareData(JSONData);
+        this.config.prepareData(JSONData);
 
         (function addNodeLinkOverlay(_this) {
           let nodeLinkOverlay = document.createElement("div");
@@ -408,6 +522,47 @@ class NetJSONGraph {
       },
 
       /**
+       * Judge parameter type
+       *
+       * @return {bool}
+       */
+      isObject(x) {
+        return Object.prototype.toString.call(x).slice(8, 14) === "Object";
+      },
+
+      /**
+       * merge two object deeply
+       *
+       * @param  {object}      targetObj
+       * @param  {object}      originObj
+       *
+       * @return {object}      targetObj
+       */
+      deepMergeObj(targetObj, originObj) {
+        if (!originObj);
+        else if (!targetObj) {
+          targetObj = originObj;
+          return targetObj;
+        } else {
+          for (let attr in originObj) {
+            if (
+              !targetObj[attr] ||
+              !(
+                _this.utils.isObject(targetObj[attr]) &&
+                _this.utils.isObject(originObj[attr])
+              )
+            ) {
+              targetObj[attr] = originObj[attr];
+            } else {
+              _this.utils.deepMergeObj(targetObj[attr], originObj[attr]);
+            }
+          }
+        }
+
+        return targetObj;
+      },
+
+      /**
        * @function
        * @name nodeInfo
        *
@@ -523,7 +678,7 @@ class NetJSONGraph {
         _this.utils
           .JSONParamParse(Data)
           .then(JSONData => {
-            _this.config.onLoad.call(_this).prepareData(JSONData);
+            _this.config.prepareData(JSONData);
 
             if (_this.config.metadata) {
               document.getElementsByClassName(
