@@ -60,15 +60,17 @@ function graphSetOption(customOption, echartsLayer, _this) {
 
 /**
  * @function
- * @name graphRender
+ * @name generateGraphOption
  *
- * Render the final graph result based on JSONData.
- * @param  {object}  graphContainer  DOM
- * @param  {object}  JSONData        Render dependent configuration
+ * generate graph option in echarts by JSONData.
+ *
+ * @param  {object}  JSONData        Render data
  * @param  {object}  _this           NetJSONGraph object
  *
+ * @return {object}  graph option
+ *
  */
-function graphRender(graphContainer, JSONData, _this) {
+function generateGraphOption(JSONData, _this) {
   let categories = JSONData.categories || [],
     configs = _this.config,
     nodes = JSONData.nodes.map(function(node) {
@@ -87,8 +89,11 @@ function graphRender(graphContainer, JSONData, _this) {
       if (node.category) {
         nodeResult.category = String(node.category);
       }
-      if (node.category && categories.indexOf(node.category) === -1) {
-        categories.push(node.category);
+      if (
+        nodeResult.category &&
+        categories.indexOf(nodeResult.category) === -1
+      ) {
+        categories.push(nodeResult.category);
       }
 
       return nodeResult;
@@ -111,48 +116,36 @@ function graphRender(graphContainer, JSONData, _this) {
         categories: categories.map(category => ({ name: category }))
       })
     ],
-    graph = echarts.init(graphContainer, null, {
-      renderer: configs.svgRender ? "svg" : "canvas"
-    }),
     legend = categories.length
       ? {
           data: categories
         }
       : undefined;
 
-  _this.echarts = graphSetOption(
-    {
-      legend,
-      series
-    },
-    graph,
-    _this
-  );
-
-  configs.onLoad.call(_this);
+  return {
+    legend,
+    series
+  };
 }
 
 /**
  * @function
- * @name mapRender
+ * @name generateMapOption
  *
- * Render the final map result based on JSONData.
- * @param  {object}  mapContainer   DOM
- * @param  {object}  JSONData       Render dependent configuration
- * @param  {object}  _this          NetJSONGraph object
+ * generate map option in echarts by JSONData.
+ *
+ * @param  {object}  JSONData        Render data
+ * @param  {object}  _this           NetJSONGraph object
+ *
+ * @return {object}  map option
  *
  */
-function mapRender(mapContainer, JSONData, _this) {
+function generateMapOption(JSONData, _this) {
   let configs = _this.config,
     { nodes, links } = JSONData,
     flatNodes = JSONData.flatNodes || {},
     linesData = [],
     nodesData = [];
-
-  if (!configs.mapTileConfig[0]) {
-    console.error(`You must add the tiles via the "mapTileConfig" param!`);
-    return;
-  }
 
   nodes.map(node => {
     if (!node.location || !node.location.lng || !node.location.lat) {
@@ -217,34 +210,77 @@ function mapRender(mapContainer, JSONData, _this) {
     })
   ];
 
-  const graph = echarts.init(mapContainer, null, {
-    renderer: configs.svgRender ? "svg" : "canvas"
+  return {
+    leaflet: {
+      tiles: [
+        {
+          urlTemplate: configs.mapTileConfig[0],
+          options: configs.mapTileConfig[1]
+        }
+      ],
+      center: configs.mapCenter.reverse(),
+      zoom: configs.mapZoom,
+      roam: configs.mapRoam
+    },
+    toolbox: {
+      show: false
+    },
+    series
+  };
+}
+
+/**
+ * @function
+ * @name graphRender
+ *
+ * Render the final graph result based on JSONData.
+ * @param  {object}  graphContainer  DOM
+ * @param  {object}  JSONData        Render data
+ * @param  {object}  _this           NetJSONGraph object
+ *
+ */
+function graphRender(graphContainer, JSONData, _this) {
+  let graph = echarts.init(graphContainer, null, {
+    renderer: _this.config.svgRender ? "svg" : "canvas"
   });
 
   _this.echarts = graphSetOption(
-    {
-      leaflet: {
-        tiles: [
-          {
-            urlTemplate: configs.mapTileConfig[0],
-            options: configs.mapTileConfig[1]
-          }
-        ],
-        center: configs.mapCenter.reverse(),
-        zoom: configs.mapZoom,
-        roam: configs.mapRoam
-      },
-      toolbox: {
-        show: false
-      },
-      series
-    },
+    generateGraphOption(JSONData, _this),
+    graph,
+    _this
+  );
+
+  _this.config.onLoad.call(_this);
+}
+
+/**
+ * @function
+ * @name mapRender
+ *
+ * Render the final map result based on JSONData.
+ * @param  {object}  mapContainer   DOM
+ * @param  {object}  JSONData       Render data
+ * @param  {object}  _this          NetJSONGraph object
+ *
+ */
+function mapRender(mapContainer, JSONData, _this) {
+  if (!_this.config.mapTileConfig[0]) {
+    console.error(`You must add the tiles via the "mapTileConfig" param!`);
+    return;
+  }
+
+  const graph = echarts.init(mapContainer, null, {
+    renderer: _this.config.svgRender ? "svg" : "canvas"
+  });
+
+  _this.echarts = graphSetOption(
+    generateMapOption(JSONData, _this),
     graph,
     _this
   );
   _this.leaflet = graph._api.getCoordinateSystems()[0].getLeaflet();
 
-  configs.onLoad.call(_this);
+  _this.config.onLoad.call(_this);
 }
 
 /**
@@ -322,4 +358,10 @@ function presentIndoormap(img, _this) {
 // window.graphRender = graphRender;
 // window.mapRender = mapRender;
 // window.presentIndoormap = presentIndoormap;
-export { graphRender, mapRender, presentIndoormap };
+export {
+  graphRender,
+  mapRender,
+  presentIndoormap,
+  generateGraphOption,
+  generateMapOption
+};
