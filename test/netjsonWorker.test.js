@@ -426,17 +426,20 @@ const rawJSONData = new Map([
           "id": "172.31.0.5",
           "local_addresses": [
             "172.31.0.2",
-          ]
+          ],
+          "linkCount": 1
         },
         "172.31.1.100": {
           "id": "172.31.1.100",
+          "linkCount": 2
         },
         "172.31.2.100": {
           "id": "172.31.2.100",
           "local_addresses": [
             "172.31.2.1",
             "172.31.2.2"
-          ]
+          ],
+          "linkCount": 1
         },
       }, 
       nodeInterfaces: {
@@ -444,21 +447,24 @@ const rawJSONData = new Map([
           "id": "172.31.0.5",
           "local_addresses": [
             "172.31.0.2",
-          ]
+          ],
+          "linkCount": 1
         },
         "172.31.2.1": {
           "id": "172.31.2.100",
           "local_addresses": [
             "172.31.2.1",
             "172.31.2.2"
-          ]
+          ],
+          "linkCount": 1
         },
         "172.31.2.2": {
           "id": "172.31.2.100",
           "local_addresses": [
             "172.31.2.1",
             "172.31.2.2"
-          ]
+          ],
+          "linkCount": 1
         }
       },
     }
@@ -482,6 +488,12 @@ describe("Some separated operations with netjson", () => {
         expect(JSON.stringify(key)).toBe(keyJsonStore);
       }
     });
+    test("Add node linkCount field", () => {
+      let [operationFunc, operationDataMap] = operationsObj["Add node linkCount field"];
+      for(let [key, value] of operationDataMap){  
+        expect(operationFunc(...key)).toEqual(value);
+      }
+    })
   }
 })
 describe("Overall operation with netjson", () => {

@@ -32,7 +32,10 @@ describe('NetJSONGraph Specification', () => {
           title: "Save image"
         }
       }
-    }
+    },
+    color: [
+      "#d66b30", "#a3c7dd", "#5c9660", "#d66b30"
+    ],
   };
   const NetJSONGraphConfig = {
     layout: "force",
