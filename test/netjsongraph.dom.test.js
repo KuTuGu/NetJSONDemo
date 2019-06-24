@@ -1,10 +1,21 @@
 'use strict';
 
-import "../src/js/netjsongraph.core.js";
+import NetJSONGraph from "../src/js/netjsongraph.core.js";
+import NetJSONGraphUtil from "../src/js/netjsongraph.util.js";
+
+const graph = new NetJSONGraph({
+  "type":"NetworkGraph",
+  "label":"Ninux Roma",
+  "protocol":"OLSR",
+  "version":"0.6.6.2",
+  "metric":"ETX",
+  "nodes": [],
+  "links": [],
+});
+graph.utils = Object.assign(new NetJSONGraphUtil(), graph.utils);
+graph.setConfig({});
 
 describe("Test netjsongraph utils dom functions", () => {
-  const graph = new NetJSONGraph("", {});
-
   const NetJSONMetadataData = new Map([
     [
       // key
@@ -15,6 +26,18 @@ describe("Test netjsongraph utils dom functions", () => {
           "protocol":"OLSR",
           "version":"0.6.6.2",
           "metric":"ETX",
+          "nodes": [],
+          "links": [],
+        }
+      ],
+      // value
+      HTMLDivElement
+    ],
+    [
+      // key
+      [
+        {
+          "type":"NetworkGraph",
           "nodes": [],
           "links": [],
         }
@@ -40,10 +63,6 @@ describe("Test netjsongraph utils dom functions", () => {
 
 
 describe("Test netjsongraph dom operate", () => {
-  const graph = new NetJSONGraph({
-    nodes: [],
-    links: [],
-  });
   graph.render();
 
   test("Click a node", () => {

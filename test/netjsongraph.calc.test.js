@@ -1,9 +1,9 @@
 'use strict';
 
-import "../src/js/netjsongraph.core.js";
+import NetJSONGraphUtil from "../src/js/netjsongraph.util.js";
 
 describe("Test netjsongraph function utils", () => {
-  const graph = new NetJSONGraph("", {});
+  const util = new NetJSONGraphUtil("", {});
 
   const nodeInfoData = new Map([
     [
@@ -23,7 +23,7 @@ describe("Test netjsongraph function utils", () => {
         },
       ],
       // value
-      "<p><b>id</b>: 0</p>\n<p><b>label</b>: test</p>\n<p><b>name</b>: Node</p>\n<p><b>color</b>: red</p>\n<p><b>update time</b>: 2019.5.20 14:21:07</p>\n<p><b>links</b>: 1</p>\n<p><b>local addresses</b>:<br/>192.168.0.01<br/>192.168.0.02<br/>192.168.0.03</p>\n"
+      "<p><b>id</b>: 0</p><p><b>label</b>: test</p><p><b>name</b>: Node</p><p><b>color</b>: red</p><p><b>update time</b>: 2019.5.20 14:21:07</p><p><b>links</b>: 1</p><p><b>local addresses</b>:<br/>192.168.0.01<br/>192.168.0.02<br/>192.168.0.03</p>"
     ],
   ]);
   const linkInfoData = new Map([
@@ -43,7 +43,7 @@ describe("Test netjsongraph function utils", () => {
         },
       ],
       // value
-      `<p><b>source</b>: 192.168.0.01</p>\n<p><b>target</b>: 192.168.1.01</p>\n<p><b>cost</b>: 1.000</p>\n<p><b>name</b>: Link</p>\n<p><b>color</b>: blue</p>\n<p><b>update time</b>: 2019.5.20 14:21:07</p>\n`
+      `<p><b>source</b>: 192.168.0.01</p><p><b>target</b>: 192.168.1.01</p><p><b>cost</b>: 1.000</p><p><b>name</b>: Link</p><p><b>color</b>: blue</p><p><b>update time</b>: 2019.5.20 14:21:07</p>`
     ],
   ]);
   const numberMinDigitData = new Map([
@@ -62,19 +62,44 @@ describe("Test netjsongraph function utils", () => {
     ],
   ]);
   const dateParseData = new Map([
-    // dateParse value depands on time zone! So there isn't a only answer.
     [
       // key
-      ["2019-02-28T23:59:59.999Z"],
+      [{
+        dateString: "2019-02-28T23:59:59.999Z",
+        hourDiffer: -1,
+      }],
+      "2019.03.01 00:59:59.999"
     ],
     [
       ["23:59:59.999Z"],
     ],
     [
-      ["2020-02-29T23:59:59Z"],
+      [{
+        dateString: "2020-02-29T23:59:59Z",
+        hourDiffer: -1,
+      }],
+      "2020.03.01 00:59:59"
     ],
     [
-      ["2000-12-31T23:59:59Z"],
+      [{
+        dateString: "2000-12-31T23:59:59Z",
+        hourDiffer: -1,
+      }],
+      "2001.01.01 00:59:59"
+    ],
+    [
+      [{
+        dateString: "2000-12-31T23:59:59Z",
+        hourDiffer: 1,
+      }],
+      "2000.12.31 22:59:59"
+    ],
+    [
+      [{
+        dateString: "1000-01-01T00:59:59Z",
+        hourDiffer: 1,
+      }],
+      "999.12.31 23:59:59"
     ],
   ]);
   const isObjectData = new Map([
@@ -112,6 +137,14 @@ describe("Test netjsongraph function utils", () => {
       [{a: {b: 1}}, {a: {c: 2}}],
       {a: {b: 1, c: 2}}
     ],
+    [
+      [{a: 1}, {b: 2}, {c: 3}],
+      {a: 1, b: 2, c: 3}
+    ],
+    [
+      [{a: 1}, {c: 3}, , ,],
+      {a: 1, c: 3}
+    ],
   ]);
   
   const utilsObj = {
@@ -128,10 +161,10 @@ describe("Test netjsongraph function utils", () => {
       let [operationFunc, operationDataMap] = utilsObj[operationText];
       for(let [key, value] of operationDataMap){  
         if(value){
-          expect(graph.utils[operationFunc](...key)).toEqual(value);
+          expect(util[operationFunc](...key)).toEqual(value);
         }
         else{
-          expect(graph.utils[operationFunc](...key))
+          expect(util[operationFunc](...key))
         }
       }
     });
