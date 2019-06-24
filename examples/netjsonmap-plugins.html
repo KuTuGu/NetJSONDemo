@@ -11,16 +11,6 @@
     <link href="../src/css/netjsongraph-theme.css" rel="stylesheet">
     <link href="../src/css/netjsongraph.css" rel="stylesheet">
     <style type="text/css">
-        html, body, #map {
-            height: 100%;
-            padding: 0;
-            margin: 0;
-        }
-        #graphChartContainer{
-            position: absolute;
-            left: 0;
-            top: 0;
-        }
         .njg-metadata{
           left: 50px;
         }
@@ -31,7 +21,13 @@
     <script type="text/javascript" src="../lib/js/leaflet-draw.js"></script>
     <script>
         const graph = new NetJSONGraph("./data/netjsonmap.json", {
-            render: mapRender,
+            render: "map",
+            mapNodeConfig: {
+                label: {
+                    color: "white",
+                    offset: [0, -10],
+                }
+            },
             mapTileConfig: ["http://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineStreetPurplishBlue/MapServer/tile/{z}/{y}/{x}", {
                 minZoom: 0.25, 
                 maxZoom: 18,

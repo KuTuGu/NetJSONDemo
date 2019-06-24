@@ -14,7 +14,13 @@
     <script type="text/javascript" src="../dist/netjsongraph.min.js"></script>
     <script type="text/javascript">
         const map = new NetJSONGraph("./data/netjsonmap.json", {
-            render: mapRender,
+            render: "map",
+            mapNodeConfig: {
+                label: {
+                    color: "white",
+                    offset: [0, -10],
+                }
+            },
             mapTileConfig: ["http://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineStreetPurplishBlue/MapServer/tile/{z}/{y}/{x}", {
                 minZoom: 0.25, 
                 maxZoom: 18,
@@ -22,7 +28,7 @@
             mapCenter: [46.86764405052012, 19.675998687744144],
             mapZoom: 6,
         });
-        
+        console.log(map.config);
         map.render();
     </script>
 </html>

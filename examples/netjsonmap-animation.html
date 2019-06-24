@@ -9,24 +9,12 @@
     <!-- theme can be easily customized via css -->
     <link href="../src/css/netjsongraph-theme.css" rel="stylesheet">
     <link href="../src/css/netjsongraph.css" rel="stylesheet">
-    <style type="text/css">
-        html, body, #map {
-            height: 100%;
-            padding: 0;
-            margin: 0;
-        }
-        #graphChartContainer{
-            position: absolute;
-            left: 0;
-            top: 0;
-        }
-    </style>
 </head>
 <body>
     <script type="text/javascript" src="../dist/netjsongraph.min.js"></script>
     <script>
         const graph = new NetJSONGraph("./data/airplaneRouteMap.json", {
-            render: mapRender,
+            render: "map",
             echartsOption: {
                 title: {
                     text: "Airplane route map",
