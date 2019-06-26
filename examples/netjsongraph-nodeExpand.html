@@ -13,6 +13,21 @@
         const graph = new NetJSONGraph("./data/netjsongraph-foldNodes.json", {
             render: "graph",
             dealDataByWorker: "../src/js/netjsonWorker.js",
+            echartsOption: {
+                legend: {
+                    left: 10,
+                    bottom: 10,
+                    orient: "vertical",
+                    textStyle: {
+                        color: "#6d6357",
+                        fontFamily: "Arial, sans-serif",
+                        fontSize: 14,
+                    },
+                    backgroundColor: "#fbfbfb",
+                    borderWidth: 1, 
+                    borderRadius: 2,
+                }
+            }
         });
 
         graph.setConfig({
