@@ -20,6 +20,10 @@
             let searchContainer = document.createElement("div"),
                 searchInput = document.createElement("input"),
                 searchBtn = document.createElement("button"),
+                /*
+                    Pass in the url to listen to, and save the returned function.
+                    Please ensure that the return value of the api is the specified json format.
+                */
                 searchFunc = _this.utils.searchElements("https://ee3bdf59-d14c-4280-b514-52bd3dfc2c17.mock.pstmn.io/?search=");
 
             searchInput.setAttribute("class", "njg-searchInput");
@@ -38,6 +42,10 @@
             searchBtn.onclick = () => {
                 let inputValue = searchInput.value.trim();
                 
+                /*
+                    Pass in the relevant search value, 
+                    which will re-render automatically according to the request result within the function.
+                */
                 searchFunc(inputValue);
 
                 searchInput.value = "";

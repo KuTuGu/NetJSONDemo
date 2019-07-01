@@ -34,14 +34,22 @@
             }],
             mapCenter: [46.86764405052012, 19.675998687744144],
             mapZoom: 6,
+
+            // Load related plugins after the map is rendered
             onLoad: function(){
               /*
                 It seems that the compatibility of this plugin(leaflet-draw) has problem in leaflet@1.51. 
                 It has nothing to do with netjsongraph.
               */
 
+              /* 
+                The map has this property only after the map is rendered, 
+                so we have to put the relevant function in `onLoad` life cycle  
+              */
               let map = this.leaflet,
                 editableLayers = new L.FeatureGroup(),
+
+                // Plugin related configuration
                 MyCustomMarker = L.Icon.extend({
                   options: {
                     shadowUrl: null,

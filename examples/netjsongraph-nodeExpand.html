@@ -66,6 +66,7 @@
 
                 if(!data._expanded){
                     data.childNodes.map(child => {
+                        // The `flatNodes` attribute is obtained after processed by `dealDataByWorker`.
                         JSONData.flatNodes[child.id] = child;
                         JSONData.nodes.push(child);
                         JSONData.links.push({

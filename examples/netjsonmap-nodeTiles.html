@@ -28,6 +28,10 @@
             mapCenter: [46.86764405052012, 19.675998687744144],
             mapZoom: 2,
             onLoad: () => {
+                /* 
+                    The map has this property only after the map is rendered, 
+                    so we have to put the relevant function in `onLoad` life cycle  
+                */
                 let baseMap = map.leaflet,
                     folderName = "./data/netjsonnodeTiles/",
                     tilesMap = {
@@ -36,6 +40,11 @@
                         "6": "netjsonnodeTile-6.json",
                     },
                     preZoom = map.config.mapZoom;
+                
+                /*
+                    Monitor the zoom of the leaflet.
+                    New data is updated if the zoom value reaches the relevant threshold.
+                */ 
                 baseMap.on("zoomstart", () => {
                     preZoom = baseMap.getZoom();
                 })
@@ -43,10 +52,12 @@
                     let curZoom = baseMap.getZoom(),
                         curCenter = baseMap.getCenter();
                     if((preZoom !== curZoom) && tilesMap[curZoom]){
+                        // Reset map center and zoom
                         map.setConfig({
                             mapCenter: [curCenter.lat, curCenter.lng],
                             mapZoom: curZoom,
                         })
+                        // json update function
                         map.utils.JSONDataUpdate.call(map, folderName + tilesMap[curZoom]);
                     }
                 })

@@ -42,6 +42,7 @@
             canvasMode.innerHTML = "Canvas";
             svgMode.innerHTML = "Svg";
             checkInput.onchange = () => {
+                // Switch between different rendering modes -- `canvas` or `svg`.
                 _this.config.svgRender = !_this.config.svgRender;
                 _this.utils.NetJSONRender();
             };

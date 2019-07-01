@@ -48,6 +48,10 @@
 
             readImg.readAsDataURL(e.target.files[0]);
             readImg.onload = e => {
+                /*
+                    Call the built-in function to display a custom image map. 
+                    Mainly used for indoor maps.
+                */
                 graph.utils.presentIndoormap(e.target.result, _this);
             }
           };
