@@ -27,6 +27,16 @@
             }],
             mapCenter: [46.86764405052012, 19.675998687744144],
             mapZoom: 6,
+            
+            // Convert to internal json format
+            prepareData: data => {
+                data.nodes.map(node => {
+                    node.label = node.name;
+                    node.properties = Object.assign(node.properties || {}, {
+                        location: node.location,
+                    })
+                })
+            },
         });
         
         map.render();

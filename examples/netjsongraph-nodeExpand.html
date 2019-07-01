@@ -27,6 +27,15 @@
                     borderWidth: 1, 
                     borderRadius: 2,
                 }
+            },
+            
+            // Convert to internal json format
+            prepareData: data => {
+                data.nodes.map(node => {
+                    node.properties = Object.assign(node.properties || {}, {
+                        category: node.category
+                    })
+                })
             }
         });
 

@@ -31,6 +31,17 @@
                 minZoom: 0.25, 
                 maxZoom: 18,
             }],
+
+            // Convert to internal json format
+            prepareData: data => {
+                data.nodes.map(node => {
+                    node.label = node.name;
+                    node.properties = Object.assign(node.properties || {}, {
+                        location: node.location,
+                    })
+                })
+            },
+            
             // Map lines configuration
             mapLineConfig: [{
                 type: "lines",

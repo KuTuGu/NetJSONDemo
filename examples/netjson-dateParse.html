@@ -12,13 +12,22 @@
     <script type="text/javascript">
         const graph = new NetJSONGraph("./data/netjsonmap.json", {
             render: "graph",
+
+            // Convert to internal json format
+            prepareData: data => {
+                data.nodes.map(node => {
+                    node.label = node.name;
+                })
+            },
         });
         
         graph.render();
 
         (function addDateParse(_this){
             const dateNode = document.createElement("span"),
-              dateResult = _this.utils.dateParse("2019-04-03T05:06:54.000Z");
+              dateResult = _this.utils.dateParse({
+                dateString: "2019-04-03T05:06:54.000Z"
+              });
               
             dateNode.setAttribute("title", dateResult);
             dateNode.setAttribute("class", "njg-date");
