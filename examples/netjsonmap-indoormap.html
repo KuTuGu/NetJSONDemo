@@ -19,52 +19,90 @@
     <script type="text/javascript" src="../dist/netjsongraph.min.js"></script>
     <script>
         const graph = new NetJSONGraph("./data/netjsonmap.json", {
-          render: "map",
-          mapNodeConfig: {
-            label: {
-                color: "white",
-                offset: [0, -10],
-            }
-          },
-          mapTileConfig: ["http://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineStreetPurplishBlue/MapServer/tile/{z}/{y}/{x}", {
-              minZoom: 0.25, 
-              maxZoom: 18,
-          }],
-          mapCenter: [46.86764405052012, 19.675998687744144],
-          mapZoom: 6,
-
-          // Convert to internal json format
-          prepareData: data => {
-                data.nodes.map(node => {
-                    node.label = node.name;
-                    node.properties = Object.assign(node.properties || {}, {
-                        location: node.location,
-                    })
-                })
+            render: "map",
+            mapNodeConfig: {
+              label: {
+                  color: "white",
+                  offset: [0, -10],
+              }
             },
-        })
-
+            mapTileConfig: ["http://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineStreetPurplishBlue/MapServer/tile/{z}/{y}/{x}", {
+                minZoom: 0.25, 
+                maxZoom: 18,
+            }],
+            mapCenter: [46.86764405052012, 19.675998687744144],
+            mapZoom: 6,
+  
+            // Convert to internal json format
+            prepareData: data => {
+                  data.nodes.map(node => {
+                      node.label = node.name;
+                      node.properties = Object.assign(node.properties || {}, {
+                          location: node.location,
+                      })
+                  })
+              },
+          })
+  
         graph.render(); 
 
+        /**
+         * @function
+         * @name viewInputImage
+         *
+         * Add Input to upload indoormap image.
+         *
+         * @param  {string}   img             Indoor img src
+         * @param  {object}   _this           NetJSONMap object
+         *
+         * @return {object}   input DOM
+         */
+
+        function presentIndoormap(img, _this) {
+            let netjsonmap = _this.leaflet,
+            tempImage = new Image();
+
+            tempImage.src = img;
+            tempImage.onload = () => {
+                let center = netjsonmap.getCenter(),
+                    x = 1,
+                    y = 1,
+                    southWest = netjsonmap.containerPointToLatLng(
+                            L.point(window.innerWidth * 0.1, window.innerHeight * 0.1)
+                    ), 
+                    northEast = netjsonmap.containerPointToLatLng(
+                            L.point(window.innerWidth * 0.9, window.innerHeight * 0.9)
+                    ), 
+                    bounds = new L.LatLngBounds(southWest, northEast);
+                
+                // netjsonmap.eachLayer(layer => {
+                //   if (layer._url) {
+                //     netjsonmap.removeLayer(layer);
+                //   }
+                // });
+                L.imageOverlay(tempImage.src, bounds).addTo(netjsonmap);
+            };
+        }
+
         (function addImageInput(_this){
-          let imgInput = document.createElement("input");
-          imgInput.setAttribute("type", "file");
-          imgInput.setAttribute("accept", "image/*");
-          imgInput.setAttribute("id", "njg-indoorImgInput");
-          _this.el.appendChild(imgInput);
+            let imgInput = document.createElement("input");
+            imgInput.setAttribute("type", "file");
+            imgInput.setAttribute("accept", "image/*");
+            imgInput.setAttribute("id", "njg-indoorImgInput");
+            _this.el.appendChild(imgInput);
 
-          imgInput.onchange = e => {
-            let readImg = new FileReader();
+            imgInput.onchange = e => {
+                let readImg = new FileReader();
 
-            readImg.readAsDataURL(e.target.files[0]);
-            readImg.onload = e => {
-                /*
-                    Call the built-in function to display a custom image map. 
-                    Mainly used for indoor maps.
-                */
-                graph.utils.presentIndoormap(e.target.result, _this);
-            }
-          };
+                readImg.readAsDataURL(e.target.files[0]);
+                readImg.onload = e => {
+                    /*
+											Call the function to display a custom image map. 
+											Mainly used for indoor maps.
+                    */
+                  	presentIndoormap(e.target.result, _this);
+                }
+            };
         })(graph)
     </script>
 </body>

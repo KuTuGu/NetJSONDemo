@@ -27,29 +27,29 @@ npm run build
 netjsongraph.js accepts two arguments.
 
 - url (required, string): URL to fetch the JSON data from. 
+               
 	JSON format used internally based on [networkgraph](http://netjson.org/rfc.html#rfc.section.4), but a little different: more occupied names as follows：
 ```JS
 {
-        nodes: [{
-            properties: {
-            	// Define node category
-                category ? : String,
-                
-                /* 
-                	Define the geographic coordinates of the node.
-                	Required when rendering a map.
-                */
-                location ? : {
-                    lng: Float,
-                    lat: Float,
-                }
+    nodes: [{
+        properties ? : {
+            // Define node category
+            category ? : String,
+            
+            /* 
+                Define the geographic coordinates of the node.
+                Required when rendering a map.
+            */
+            location ? : {
+                lng: Float,
+                lat: Float,
             }
-        }],
-        flatNodes ? : {
-            <node id>: node Object
         }
-  
-	}
+    }],
+    flatNodes ? : {
+        <node id>: node Object
+    }  
+}
 ```
 
 - options (optional, object): custom options described below
