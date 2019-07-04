@@ -91,7 +91,7 @@ class NetJSONGraphRender {
    *
    */
   generateGraphOption(JSONData, _this) {
-    let categories = JSONData.categories || [],
+    let categories = [],
       configs = _this.config,
       nodes = JSONData.nodes.map(function(node) {
         let nodeResult = JSON.parse(JSON.stringify(node));
@@ -104,10 +104,9 @@ class NetJSONGraphRender {
           typeof configs.nodeSize === "function"
             ? configs.nodeSize(node)
             : configs.nodeSize;
-        nodeResult.name = node.name || node.id;
-        nodeResult.value = node.value || node.name;
-        if (node.category) {
-          nodeResult.category = String(node.category);
+        nodeResult.name = node.label || node.id;
+        if (node.properties && node.properties.category) {
+          nodeResult.category = String(node.properties.category);
         }
         if (
           nodeResult.category &&
@@ -168,24 +167,30 @@ class NetJSONGraphRender {
       nodesData = [];
 
     nodes.map(node => {
-      if (!node.location || !node.location.lng || !node.location.lat) {
+      if (!node.properties) {
         console.error(`Node ${node.id} position is undefined!`);
       } else {
-        nodesData.push({
-          name: node.name,
-          value: [node.location.lng, node.location.lat],
-          symbolSize:
-            typeof configs.nodeSize === "function"
-              ? configs.nodeSize(node)
-              : configs.nodeSize,
-          itemStyle:
-            typeof configs.nodeStyleProperty === "function"
-              ? configs.nodeStyleProperty(node)
-              : configs.nodeStyleProperty,
-          node
-        });
-        if (!JSONData.flatNodes) {
-          flatNodes[node.id] = JSON.parse(JSON.stringify(node));
+        let { location } = node.properties;
+
+        if (!location || !location.lng || !location.lat) {
+          console.error(`Node ${node.id} position is undefined!`);
+        } else {
+          nodesData.push({
+            name: node.label,
+            value: [location.lng, location.lat],
+            symbolSize:
+              typeof configs.nodeSize === "function"
+                ? configs.nodeSize(node)
+                : configs.nodeSize,
+            itemStyle:
+              typeof configs.nodeStyleProperty === "function"
+                ? configs.nodeStyleProperty(node)
+                : configs.nodeStyleProperty,
+            node
+          });
+          if (!JSONData.flatNodes) {
+            flatNodes[node.id] = JSON.parse(JSON.stringify(node));
+          }
         }
       }
     });
@@ -198,12 +203,12 @@ class NetJSONGraphRender {
         linesData.push({
           coords: [
             [
-              flatNodes[link.source].location.lng,
-              flatNodes[link.source].location.lat
+              flatNodes[link.source].properties.location.lng,
+              flatNodes[link.source].properties.location.lat
             ],
             [
-              flatNodes[link.target].location.lng,
-              flatNodes[link.target].location.lat
+              flatNodes[link.target].properties.location.lng,
+              flatNodes[link.target].properties.location.lat
             ]
           ],
           lineStyle:
@@ -301,78 +306,6 @@ class NetJSONGraphRender {
     _this.leaflet = graph._api.getCoordinateSystems()[0].getLeaflet();
 
     _this.config.onLoad.call(_this);
-  }
-
-  /**
-   * @function
-   * @name viewInputImage
-   *
-   * Add Input to upload indoormap image.
-   *
-   * @param  {string}   img             Indoor img src
-   * @param  {object}   _this           NetJSONMap object
-   *
-   * @return {object}   input DOM
-   */
-
-  presentIndoormap(img, _this) {
-    let netjsonmap = _this.leaflet,
-      tempImage = new Image();
-
-    tempImage.src = img;
-    tempImage.onload = () => {
-      let southWest, northEast, bounds;
-      if (
-        tempImage.width / tempImage.height >
-        window.innerWidth / window.innerHeight
-      ) {
-        (southWest = netjsonmap.layerPointToLatLng(
-          L.point(
-            0,
-            window.innerHeight -
-              (window.innerHeight -
-                (window.innerWidth * tempImage.height) / tempImage.width) /
-                2 +
-              60
-          )
-        )),
-          (northEast = netjsonmap.layerPointToLatLng(
-            L.point(
-              window.innerWidth,
-              (window.innerHeight -
-                (window.innerWidth * tempImage.height) / tempImage.width) /
-                2 +
-                60
-            )
-          ));
-        bounds = new L.LatLngBounds(southWest, northEast);
-      } else {
-        (southWest = netjsonmap.layerPointToLatLng(
-          L.point(
-            (window.innerWidth -
-              (window.innerHeight * tempImage.width) / tempImage.height) /
-              2,
-            window.innerHeight + 60
-          )
-        )),
-          (northEast = netjsonmap.layerPointToLatLng(
-            L.point(
-              window.innerWidth -
-                (window.innerWidth -
-                  (window.innerHeight * tempImage.width) / tempImage.height) /
-                  2,
-              60
-            )
-          ));
-        bounds = new L.LatLngBounds(southWest, northEast);
-      }
-      netjsonmap.eachLayer(layer => {
-        if (layer._url) {
-          netjsonmap.removeLayer(layer);
-        }
-      });
-      L.imageOverlay(tempImage.src, bounds).addTo(netjsonmap);
-    };
   }
 }
 
