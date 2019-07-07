@@ -267,10 +267,9 @@ class NetJSONGraphUtil {
     if (node.properties) {
       for (let key in node.properties) {
         if (key === "location") {
-          html += `<p><b>location</b>:<br /> 
-            lat: ${node.properties.location.lat}<br />
-            lng: ${node.properties.location.lng}<br />
-          </p>`;
+          html += `<p><b>location</b>:<br />lat: ${
+            node.properties.location.lat
+          }<br />lng: ${node.properties.location.lng}<br /></p>`;
         } else {
           html += `<p><b>${key.replace(/_/g, " ")}</b>: ${
             node.properties[key]
