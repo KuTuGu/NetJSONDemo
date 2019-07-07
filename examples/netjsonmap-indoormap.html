@@ -47,26 +47,6 @@
                 let netjsonmap = this.leaflet,
                     echarts = this.echarts,
                     image = new Image();
-                
-                // fixed bug of tooltip offset after movement in echarts-leaflet
-                this.setConfig({
-                    echartsOption: {
-                        tooltip: {
-                            position: (point) => {
-                                let diffX = 0,
-                                    diffY = 0;
-                                const overlayPaneBoundingRect = netjsonmap.getPane('overlayPane').getBoundingClientRect(),
-                                    echartsElemBoundingRect = echarts.getDom().getBoundingClientRect();
-                                if (overlayPaneBoundingRect instanceof DOMRect && echartsElemBoundingRect instanceof DOMRect) {
-                                    diffX = overlayPaneBoundingRect.x - echartsElemBoundingRect.x;
-                                    diffY = overlayPaneBoundingRect.y - echartsElemBoundingRect.y;
-                                }
-                                // 20 is just a margin that tooltip is not laying on a point
-                                return [point[0] + diffX + 20, point[1] + diffY + 20];
-                            },
-                        }
-                    },
-                });
                     
                 image.src = "./data/indoormap.jpg";
                 image.onload = () => {
@@ -98,13 +78,6 @@
                     // });
                     L.imageOverlay(image, bounds).addTo(netjsonmap);
                 }
-
-                // update config
-                this.utils.graphSetOption(
-                    this.utils.generateMapOption(this.data, this),
-                    this.echarts,
-                    this
-                );
             }
         })
   
