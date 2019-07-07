@@ -176,7 +176,7 @@ class NetJSONGraphRender {
           console.error(`Node ${node.id} position is undefined!`);
         } else {
           nodesData.push({
-            name: node.label,
+            name: node.label || node.id,
             value: [location.lng, location.lat],
             symbolSize:
               typeof configs.nodeSize === "function"
@@ -243,7 +243,7 @@ class NetJSONGraphRender {
             options: configs.mapTileConfig[1]
           }
         ],
-        center: configs.mapCenter.reverse(),
+        center: [...configs.mapCenter].reverse(),
         zoom: configs.mapZoom,
         roam: configs.mapRoam
       },
