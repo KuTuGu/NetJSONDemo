@@ -10,9 +10,7 @@ import "echarts/lib/component/toolbox";
 import "echarts/lib/component/legend";
 import "zrender/lib/svg/svg";
 
-import "leaflet/dist/leaflet.js";
-
-import "echarts-leaflet/dist/echarts-leaflet.js";
+import L from "leaflet/dist/leaflet.js";
 
 class NetJSONGraphRender {
   /**
@@ -309,4 +307,4 @@ class NetJSONGraphRender {
   }
 }
 
-export default NetJSONGraphRender;
+export { NetJSONGraphRender, echarts, L };
