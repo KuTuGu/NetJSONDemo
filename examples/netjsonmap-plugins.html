@@ -7,6 +7,7 @@
     integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
     crossorigin=""/>
     <link href="../lib/css/leaflet-draw.css" rel="stylesheet">
+    <link href="../lib/css/leaflet-measure.css" rel="stylesheet">
     <!-- theme can be easily customized via css -->
     <link href="../src/css/netjsongraph-theme.css" rel="stylesheet">
     <link href="../src/css/netjsongraph.css" rel="stylesheet">
@@ -17,9 +18,10 @@
     </style>
 </head>
 <body>
-    <script type="text/javascript" src="../dist/netjsongraph.min.js"></script>    
+    <script type="text/javascript" src="../dist/netjsongraph.min.js"></script>  
     <script type="text/javascript" src="../lib/js/leaflet-draw.js"></script>
-    <script>
+    <script type="text/javascript" src="../lib/js/leaflet-measure.js"></script>
+    <script type="module">
         const graph = new NetJSONGraph("./data/netjsonmap.json", {
             render: "map",
             mapNodeConfig: {
@@ -47,11 +49,6 @@
 
             // Load related plugins after the map is rendered
             onLoad: function(){
-              /*
-                It seems that the compatibility of this plugin(leaflet-draw) has problem in leaflet@1.51. 
-                It has nothing to do with netjsongraph.
-              */
-
               /* 
                 The map has this property only after the map is rendered, 
                 so we have to put the relevant function in `onLoad` life cycle  
@@ -114,6 +111,8 @@
 
                 editableLayers.addLayer(layer);
               });
+
+              L.control.measure({}).addTo(map);
             }
         })
 
