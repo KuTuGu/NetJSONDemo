@@ -7,6 +7,7 @@
     "dev": "webpack-dev-server --open --hot --mode development",
     "start": "npm run dev",
     "build": "webpack --progress --hide-modules --mode production",
+    "build:test": "webpack --progress --mode development", 
     "cover": "npm run test -- --coverage && cat ./coverage/lcov.info | coveralls",
     "precommit": "lint-staged",
     "lint": "eslint --fix --ext .js src"
