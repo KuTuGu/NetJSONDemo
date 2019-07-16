@@ -218,47 +218,6 @@ const NetJSONGraphDefaultConfig = Object.freeze({
   }),
   /**
    * @function
-   * @name onInit
-   * Callback function executed on initialization
-   *
-   * @this  {object}          The instantiated object of NetJSONGraph
-   *
-   * @return {object}         this.config
-   */
-  onInit: function() {
-    return this.config;
-  },
-
-  /**
-   * @function
-   * @name onRender
-   * Callback function executed on render start
-   *
-   * @this  {object}          The instantiated object of NetJSONGraph
-   *
-   * @return {object}         this.config
-   */
-  onRender: function() {
-    this.echarts.showLoading();
-
-    return this.config;
-  },
-  /**
-   * @function
-   * @name onLoad
-   * Callback function executed when rendered.
-   *
-   * @this  {object}          The instantiated object of NetJSONGraph
-   *
-   * @return {object}         this.config
-   */
-  onLoad: function() {
-    this.echarts.hideLoading();
-
-    return this.config;
-  },
-  /**
-   * @function
    * @name prepareData
    * Callback function executed after data has been loaded. Used to convert data to NetJSONGraph Data.
    *
