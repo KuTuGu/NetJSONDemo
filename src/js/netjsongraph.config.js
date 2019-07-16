@@ -23,8 +23,9 @@
  * @param  {object|function}   linkStyleProperty   link => {}  Used to custom link style. @see {@link https://echarts.apache.org/en/option.html#series-graph.links.lineStyle}
  *
  * @param  {function}          onInit                          Callback function executed on initialization.
+ * @param  {function}          onRender                        Callback function executed on render start.
  * @param  {function}          onLoad                          Callback function executed when rendered.
- * @param  {function}          prepareData                     Callback function executed after data has been loaded. Used to convert data to NetJSON Data.
+ * @param  {function}          prepareData                     Callback function executed after data has been loaded. Used to convert data to NetJSONGraph Data.
  * @param  {function}          onClickElement                  Called when a node or link is clicked.
  */
 const NetJSONGraphDefaultConfig = Object.freeze({
@@ -227,22 +228,39 @@ const NetJSONGraphDefaultConfig = Object.freeze({
   onInit: function() {
     return this.config;
   },
+
+  /**
+   * @function
+   * @name onRender
+   * Callback function executed on render start
+   *
+   * @this  {object}          The instantiated object of NetJSONGraph
+   *
+   * @return {object}         this.config
+   */
+  onRender: function() {
+    this.echarts.showLoading();
+
+    return this.config;
+  },
   /**
    * @function
    * @name onLoad
-   * Callback function executed after data has been loaded
+   * Callback function executed when rendered.
    *
    * @this  {object}          The instantiated object of NetJSONGraph
    *
    * @return {object}         this.config
    */
   onLoad: function() {
+    this.echarts.hideLoading();
+
     return this.config;
   },
   /**
    * @function
    * @name prepareData
-   * Convert NetJSON NetworkGraph to the data structure consumed by d3
+   * Callback function executed after data has been loaded. Used to convert data to NetJSONGraph Data.
    *
    * @param JSONData  {object}
    *
