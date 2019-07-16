@@ -11,6 +11,11 @@
     <link href="../src/css/netjsongraph.css" rel="stylesheet">
 
     <link rel="preload" href="./data/indoormap.jpg" as="image" />
+    <style type="text/css">
+        .njg-metadata{
+          left: 50px;
+        }
+    </style>
 </head>
 <body>
     <script type="text/javascript" src="../dist/netjsongraph.min.js"></script>
@@ -27,14 +32,14 @@
                 maxZoom: 8,
             }],
             mapCenter: [46.86764405052012, 19.675998687744144],
-            mapZoom: 6,
+            mapZoom: 5,
             linkStyleProperty: () => ({
                 width: 5,
                 color: "black",
             }),
     
             // Convert to internal json format
-            prepareData: data => {
+            prepareData: function(data){
                 data.nodes.map(node => {
                     node.label = node.name;
                     node.properties = Object.assign(node.properties || {}, {
@@ -50,35 +55,23 @@
                     
                 image.src = "./data/indoormap.jpg";
                 image.onload = () => {
-                    let windowRatio = window.innerWidth / window.innerHeight,
-                        imgRatio = image.width / image.height,
-                        x, y;
-
-                    if(imgRatio >= windowRatio){
-                        x = 0.8 * window.innerWidth;
-                        y = 0.8 * window.innerWidth / imgRatio;
-                    }
-                    else{
-                        y = 0.8 * window.innerHeight;
-                        x = 0.8 * window.innerHeight * imgRatio;
-                    }
-
-                    let southWest = netjsonmap.layerPointToLatLng([
-                        (window.innerWidth - x) / 2 , (window.innerHeight - y) / 2
-                        ]), 
-                        northEast = netjsonmap.layerPointToLatLng([
-                            (window.innerWidth + x) / 2 , (window.innerHeight + y) / 2
-                        ]), 
+                    let southWest = {"lat":53.39105802617281,"lng":2.258377075195313},
+                        northEast = {"lat":43.05747491746001,"lng":35.327825546264656},
                         bounds = new L.LatLngBounds(southWest, northEast);
-                    
-                    // remove the underlying map
-                    netjsonmap.eachLayer(layer => {
-                        if (layer._url) {
-                            netjsonmap.removeLayer(layer);
-                        }
-                    });
 
                     L.imageOverlay(image, bounds).addTo(netjsonmap);
+
+                    echarts.hideLoading();
+                    let a = [];
+                    netjsonmap.on('click', mouseevent => {
+                        a.push({
+                            id: Math.random().toString(36).slice(2,8),
+                            location: mouseevent.latlng
+                        });
+                        console.log(JSON.stringify({
+                        nodes: a
+                    }))
+                    })
                 }
             }
         })

@@ -11,6 +11,11 @@
     <link href="../src/css/netjsongraph.css" rel="stylesheet">
 
     <link rel="preload" href="./data/indoormap.jpg" as="image" />
+    <style type="text/css">
+        .njg-metadata{
+          left: 50px;
+        }
+    </style>
 </head>
 <body>
     <script type="text/javascript" src="../dist/netjsongraph.min.js"></script>
@@ -74,7 +79,7 @@
                         nePoint = netjsonmap.latLngToLayerPoint(this.config.mapPosition.northEast),
                         nodeAreaRatio = (nePoint.x - swPoint.x) / (swPoint.y - nePoint.y),
                         imgRatio = image.width / image.height,
-                        imgScale = 1.3,
+                        imgScale = 1.12,
                         x, y;
 
                     if(imgRatio >= nodeAreaRatio){
@@ -95,6 +100,18 @@
                         bounds = new L.LatLngBounds(southWest, northEast);
 
                     L.imageOverlay(image, bounds).addTo(netjsonmap);
+
+                    echarts.hideLoading();
+                    let a = [];
+                    netjsonmap.on('click', mouseevent => {
+                        a.push({
+                            id: Math.random().toString(36).slice(2,8),
+                            location: mouseevent.latlng
+                        });
+                        console.log(JSON.stringify({
+                        nodes: a
+                    }))
+                    })
                 }
             }
         })

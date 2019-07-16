@@ -10,6 +10,11 @@
     <!-- theme can be easily customized via css -->
     <link href="../src/css/netjsongraph-theme.css" rel="stylesheet">
     <link href="../src/css/netjsongraph.css" rel="stylesheet">
+    <style type="text/css">
+        .njg-metadata{
+          left: 50px;
+        }
+    </style>
 </head>
 <body>
     <script type="text/javascript" src="../dist/netjsongraph.min.js"></script>
@@ -65,15 +70,30 @@
             iconEye.onclick = () => {
                 if(_this.config.render === _this.utils.mapRender){
                     _this.config.render = _this.utils.graphRender;
+                    // reDraw
+                    _this.echarts.dispose();
+                    const graph = new NetJSONGraph(_this.data, {
+                        ..._this.config,
+                        el: _this.el,
+                        echartsOption: _this.utils.deepMergeObj(_this.config.echartsOption, {
+                            toolbox: {
+                                show: true,
+                            }
+                        }),
+                        onLoad: function(){
+                            switchGraphMode(this);
+                            this.echarts.hideLoading();
+                        },
+                    });
+                    graph.render();  
                 }
                 else{
                     _this.config.render = _this.utils.mapRender;
+                    _this.utils.NetJSONRender();
                 }
-                _this.utils.NetJSONRender();
             }
 
             return selectIconContainer;
         }
-
     </script>
 </html>

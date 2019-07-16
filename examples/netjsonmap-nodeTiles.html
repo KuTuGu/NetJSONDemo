@@ -9,6 +9,11 @@
     <!-- theme can be easily customized via css -->
     <link href="../src/css/netjsongraph-theme.css" rel="stylesheet">
     <link href="../src/css/netjsongraph.css" rel="stylesheet">
+    <style type="text/css">
+        .njg-metadata{
+          left: 50px;
+        }
+    </style>
 </head>
 <body>
     <script type="text/javascript" src="../dist/netjsongraph.min.js"></script>
@@ -27,19 +32,30 @@
             }],
             mapCenter: [46.86764405052012, 19.675998687744144],
             mapZoom: 2,
-            onLoad: () => {
+
+            // Convert to internal json format
+            prepareData: data => {
+                data.nodes.map(node => {
+                    node.label = node.name;
+                    node.properties = Object.assign(node.properties || {}, {
+                        location: node.location,
+                    })
+                })
+            },
+
+            onLoad: function(){
                 /* 
                     The map has this property only after the map is rendered, 
                     so we have to put the relevant function in `onLoad` life cycle  
                 */
-                let baseMap = map.leaflet,
+                let baseMap = this.leaflet,
                     folderName = "./data/netjsonnodeTiles/",
                     tilesMap = {
                         "2": "netjsonnodeTile-2.json",
                         "4": "netjsonnodeTile-4.json",
                         "6": "netjsonnodeTile-6.json",
                     },
-                    preZoom = map.config.mapZoom;
+                    preZoom = this.config.mapZoom;
                 
                 /*
                     Monitor the zoom of the leaflet.
@@ -53,14 +69,16 @@
                         curCenter = baseMap.getCenter();
                     if((preZoom !== curZoom) && tilesMap[curZoom]){
                         // Reset map center and zoom
-                        map.setConfig({
+                        this.setConfig({
                             mapCenter: [curCenter.lat, curCenter.lng],
                             mapZoom: curZoom,
                         })
                         // json update function
-                        map.utils.JSONDataUpdate.call(map, folderName + tilesMap[curZoom]);
+                        this.utils.JSONDataUpdate.call(this, folderName + tilesMap[curZoom]);
                     }
                 })
+
+                this.echarts.hideLoading();
             }
         });
         

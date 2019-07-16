@@ -44,7 +44,18 @@
             checkInput.onchange = () => {
                 // Switch between different rendering modes -- `canvas` or `svg`.
                 _this.config.svgRender = !_this.config.svgRender;
-                _this.utils.NetJSONRender();
+
+                // reDraw
+                _this.echarts.dispose();
+                const graph = new NetJSONGraph(_this.data, {
+                    ..._this.config,
+                    el: _this.el,
+                    onLoad: function(){
+                        switchRenderMode(this);
+                        this.echarts.hideLoading();
+                    },
+                });
+                graph.render();
             };
             if (_this.config.svgRender) {
                 checkInput.checked = true;

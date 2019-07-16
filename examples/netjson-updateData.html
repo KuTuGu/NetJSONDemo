@@ -26,6 +26,6 @@
           console.log("client disconnected.");
         });
         // Self-monitoring server， re-render when the data changes.
-        socket.on("netjsonChange", graph.utils.JSONDataUpdate);
+        socket.on("netjsonChange", graph.utils.JSONDataUpdate.bind(graph));
     </script>
 </html>
