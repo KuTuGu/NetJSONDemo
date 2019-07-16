@@ -22,8 +22,14 @@ class NetJSONGraph {
       NetJSONGraphRender.prototype,
       NetJSONGraphUpdate.prototype
     );
+
     graph.utils = Object.assign(new NetJSONGraphRender(), graph.utils);
     graph.setConfig(config);
+    graph.echarts = echarts.init(graph.el, null, {
+      renderer: graph.config.svgRender ? "svg" : "canvas"
+    });
+
+    graph.config.onInit.call(graph);
 
     return graph;
   }
