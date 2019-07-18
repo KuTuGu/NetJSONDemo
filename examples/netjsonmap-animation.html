@@ -30,8 +30,10 @@
                     }
                 },
             },
-            mapCenter: [34.86, 112.5],
-            mapZoom: 6,
+            mapOptions: {
+              center: [34.86, 112.5],
+              zoom: 6,
+            },
             mapTileConfig: ["http://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineStreetPurplishBlue/MapServer/tile/{z}/{y}/{x}", {
                 minZoom: 0.25, 
                 maxZoom: 18,

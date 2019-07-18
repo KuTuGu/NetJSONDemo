@@ -30,8 +30,10 @@
                 minZoom: 0.25, 
                 maxZoom: 18,
             }],
-            mapCenter: [46.86764405052012, 19.675998687744144],
-            mapZoom: 6,
+            mapOptions: {
+                center: [46.86764405052012, 19.675998687744144],
+                zoom: 6,
+            },
             
             // Convert to internal json format
             prepareData: data => {

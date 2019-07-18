@@ -244,9 +244,7 @@ class NetJSONGraphRender {
             options: configs.mapTileConfig[1]
           }
         ],
-        center: [...configs.mapCenter].reverse(),
-        zoom: configs.mapZoom,
-        roam: configs.mapRoam
+        mapOptions: configs.mapOptions
       },
       toolbox: {
         show: false

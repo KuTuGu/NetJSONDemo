@@ -31,8 +31,10 @@
                 minZoom: 3, 
                 maxZoom: 8,
             }],
-            mapCenter: [48.577, 18.539],
-            mapZoom: 6,
+            mapOptions: {
+                center: [48.577, 18.539],
+                zoom: 6,
+            },
             linkStyleProperty: () => ({
                 width: 5,
                 color: "black",
@@ -65,9 +67,11 @@
                             netjsonmap.removeLayer(layer);
                         }
                     });
-                    
-                    L.imageOverlay(image, bounds).addTo(netjsonmap);
 
+                    L.imageOverlay(image, bounds).addTo(netjsonmap);
+L.control.zoom({
+    position: 'topright'
+}).addTo(netjsonmap)
                     echarts.hideLoading();
                 }
             }
