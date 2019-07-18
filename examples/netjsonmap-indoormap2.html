@@ -102,16 +102,6 @@
                     L.imageOverlay(image, bounds).addTo(netjsonmap);
 
                     echarts.hideLoading();
-                    let a = [];
-                    netjsonmap.on('click', mouseevent => {
-                        a.push({
-                            id: Math.random().toString(36).slice(2,8),
-                            location: mouseevent.latlng
-                        });
-                        console.log(JSON.stringify({
-                        nodes: a
-                    }))
-                    })
                 }
             }
         })

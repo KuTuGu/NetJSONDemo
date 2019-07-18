@@ -59,19 +59,16 @@
                         northEast = {"lat":43.05747491746001,"lng":35.327825546264656},
                         bounds = new L.LatLngBounds(southWest, northEast);
 
+                    // remove the geographic map
+                    netjsonmap.eachLayer(layer => {
+                        if (layer._url) {
+                            netjsonmap.removeLayer(layer);
+                        }
+                    });
+                    
                     L.imageOverlay(image, bounds).addTo(netjsonmap);
 
                     echarts.hideLoading();
-                    let a = [];
-                    netjsonmap.on('click', mouseevent => {
-                        a.push({
-                            id: Math.random().toString(36).slice(2,8),
-                            location: mouseevent.latlng
-                        });
-                        console.log(JSON.stringify({
-                        nodes: a
-                    }))
-                    })
                 }
             }
         })
