@@ -10,6 +10,8 @@ import "echarts/lib/component/toolbox";
 import "echarts/lib/component/legend";
 import "zrender/lib/svg/svg";
 
+import "../../lib/js/echarts-gl";
+
 import L from "leaflet/dist/leaflet.js";
 
 class NetJSONGraphRender {
@@ -128,7 +130,7 @@ class NetJSONGraphRender {
       }),
       series = [
         Object.assign(configs.graphConfig, {
-          type: "graph",
+          type: configs.type === "graphGL" ? "graphGL" : "graph",
           nodes,
           links,
           categories: categories.map(category => ({ name: category }))
@@ -288,6 +290,7 @@ class NetJSONGraphRender {
       _this.utils.generateMapOption(JSONData, _this),
       _this
     );
+
     _this.leaflet = _this.echarts._api.getCoordinateSystems()[0].getLeaflet();
 
     _this.config.onLoad.call(_this);
