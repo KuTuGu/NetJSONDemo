@@ -8,128 +8,60 @@
     <link href="../src/css/netjsongraph.css" rel="stylesheet">
 </head>
 <body>
-    <script type="text/javascript" src="../lib/js/netjsongraph-GL.min.js"></script>
+    <script type="text/javascript" src="../dist/netjsongraph.min.js"></script>
     <script type="text/javascript">
         const graph = new NetJSONGraph("./data/netjsongraph-graphGL.json", {
-            prepareData: function(data){
-                this.echarts.setOption({
-                    backgroundColor: '#000',
-                    series: [{
-                        color: ["rgb(203,239,15)", "rgb(73,15,239)","rgb(15,217,239)","rgb(30,15,239)","rgb(15,174,239)","rgb(116,239,15)","rgb(239,15,58)","rgb(15,239,174)","rgb(239,102,15)","rgb(239,15,15)","rgb(15,44,239)","rgb(239,145,15)","rgb(30,239,15)","rgb(239,188,15)","rgb(159,239,15)","rgb(159,15,239)","rgb(15,239,44)","rgb(15,239,87)","rgb(15,239,217)","rgb(203,15,239)","rgb(239,15,188)","rgb(239,15,102)","rgb(239,58,15)","rgb(239,15,145)","rgb(116,15,239)","rgb(15,131,239)","rgb(73,239,15)","rgb(15,239,131)","rgb(15,87,239)","rgb(239,15,231)"],
-                        type: 'graphGL',
-                        nodes: data.nodes,
-                        edges: data.links,
-                        modularity: {
-                            resolution: 2,
-                            sort: true
-                        },
-                        lineStyle: {
-                            color: 'rgba(255,255,255,1)',
-                            opacity: 0.05
-                        },
-                        itemStyle: {
-                            opacity: 1,
-                            // borderColor: '#fff',
-                            // borderWidth: 1
-                        },
-                        focusNodeAdjacency: false,
-                        focusNodeAdjacencyOn: 'click',
-                        symbolSize: function (value) {
-                            return Math.sqrt(value / 10);
-                        },
-                        label: {
-                            textStyle: {
-                                color: '#fff'
-                            }
-                        },
-                        emphasis: {
-                            label: {
-                                show: false
-                            },
-                            lineStyle: {
-                                opacity: 0.5,
-                                width: 4
-                            }
-                        },
-                        forceAtlas2: {
-                            steps: 5,
-                            stopThreshold: 20,
-                            jitterTolerence: 10,
-                            edgeWeight: [0.2, 1],
-                            gravity: 5,
-                            edgeWeightInfluence: 0,
-                            // preventOverlap: true
-                        }
-                    }]
-                })
-                this.echarts.hideLoading();
-                const _this = this;
-                _this.echarts.on(
-                    "click",
-                    function(params) {
-                        let clickElement = _this.config.onClickElement.bind(_this);
-
-                        if (params.componentSubType === "graphGL") {
-                            clickElement(
-                                "node",
-                                params.data
-                            );
-                        }
+            render: "graph",
+            echartsOption: {
+                backgroundColor: '#000',
+            },
+            nodeSize: node => {
+                return Math.sqrt(node.value / 10);
+            },
+            graphConfig: {
+                type: "graphGL",
+                layout: 'forceAtlas2',
+                color: ["rgb(203,239,15)", "rgb(73,15,239)","rgb(15,217,239)","rgb(30,15,239)","rgb(15,174,239)","rgb(116,239,15)","rgb(239,15,58)","rgb(15,239,174)","rgb(239,102,15)","rgb(239,15,15)","rgb(15,44,239)","rgb(239,145,15)","rgb(30,239,15)","rgb(239,188,15)","rgb(159,239,15)","rgb(159,15,239)","rgb(15,239,44)","rgb(15,239,87)","rgb(15,239,217)","rgb(203,15,239)","rgb(239,15,188)","rgb(239,15,102)","rgb(239,58,15)","rgb(239,15,145)","rgb(116,15,239)","rgb(15,131,239)","rgb(73,239,15)","rgb(15,239,131)","rgb(15,87,239)","rgb(239,15,231)"],
+                modularity: {
+                    resolution: 2,
+                    sort: true
+                },
+                focusNodeAdjacency: false,
+                focusNodeAdjacencyOn: 'click',
+                label: {
+                    textStyle: {
+                        color: '#fff'
+                    }
+                },
+                emphasis: {
+                    label: {
+                        show: false
                     },
-                    { passive: true }
-                );
-            }
+                    lineStyle: {
+                        opacity: 0.5,
+                        width: 4
+                    }
+                },
+                forceAtlas2: {
+                    steps: 5,
+                    stopThreshold: 20,
+                    jitterTolerence: 10,
+                    edgeWeight: [0.2, 1],
+                    gravity: 5,
+                    edgeWeightInfluence: 0,
+                    // preventOverlap: true
+                }
+            },
+            nodeStyleProperty: {
+                opacity: 1,
+                borderColor: '#fff',
+                borderWidth: 1
+            },
+            linkStyleProperty: {
+                color: 'rgba(255,255,255,1)',
+                opacity: 0.05
+            },
         });
-        
-        //     render: "graph",
-        //     echartsOption: {
-        //         backgroundColor: '#000',
-        //     },
-        //     nodeSize: node => {
-        //         return Math.sqrt(node.value / 10);
-        //     },
-        //     graphConfig: {
-        //         color: ["rgb(203,239,15)", "rgb(73,15,239)","rgb(15,217,239)","rgb(30,15,239)","rgb(15,174,239)","rgb(116,239,15)","rgb(239,15,58)","rgb(15,239,174)","rgb(239,102,15)","rgb(239,15,15)","rgb(15,44,239)","rgb(239,145,15)","rgb(30,239,15)","rgb(239,188,15)","rgb(159,239,15)","rgb(159,15,239)","rgb(15,239,44)","rgb(15,239,87)","rgb(15,239,217)","rgb(203,15,239)","rgb(239,15,188)","rgb(239,15,102)","rgb(239,58,15)","rgb(239,15,145)","rgb(116,15,239)","rgb(15,131,239)","rgb(73,239,15)","rgb(15,239,131)","rgb(15,87,239)","rgb(239,15,231)"],
-        //         modularity: {
-        //             resolution: 2,
-        //             sort: true
-        //         },
-        //         focusNodeAdjacency: false,
-        //         focusNodeAdjacencyOn: 'click',
-        //         label: {
-        //             textStyle: {
-        //                 color: '#fff'
-        //             }
-        //         },
-        //         emphasis: {
-        //             label: {
-        //                 show: false
-        //             },
-        //             lineStyle: {
-        //                 opacity: 0.5,
-        //                 width: 4
-        //             }
-        //         },
-        //         forceAtlas2: {
-        //             steps: 5,
-        //             stopThreshold: 20,
-        //             jitterTolerence: 10,
-        //             edgeWeight: [0.2, 1],
-        //             gravity: 5,
-        //             edgeWeightInfluence: 0,
-        //             // preventOverlap: true
-        //         }
-        //     },
-        //     nodeStyleProperty: {
-        //         opacity: 1,
-        //         borderColor: '#fff',
-        //         borderWidth: 1
-        //     },
-        //     linkStyleProperty: {
-        //         color: 'rgba(255,255,255,1)',
-        //         opacity: 0.05
-        //     }
-        // });
 
         graph.render();
     </script>
