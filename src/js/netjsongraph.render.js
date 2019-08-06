@@ -178,7 +178,7 @@ class NetJSONGraphRender {
           console.error(`Node ${node.id} position is undefined!`);
         } else {
           nodesData.push({
-            name: node.label || node.id,
+            name: typeof node.label === "string" ? node.label : node.id,
             value: [location.lng, location.lat],
             symbolSize:
               typeof configs.nodeSize === "function"
