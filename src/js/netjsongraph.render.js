@@ -270,6 +270,7 @@ class NetJSONGraphRender {
     );
 
     _this.config.onLoad.call(_this);
+    window.addEventListener("resize", _this.echarts.resize);
   }
 
   /**
