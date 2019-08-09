@@ -231,7 +231,10 @@ class NetJSONGraphRender {
         })
       ),
       Object.assign(configs.mapNodeConfig, {
-        type: "effectScatter",
+        type:
+          configs.mapNodeConfig.type === "effectScatter"
+            ? "effectScatter"
+            : "scatter",
         coordinateSystem: "leaflet",
         data: nodesData
       })
@@ -270,7 +273,9 @@ class NetJSONGraphRender {
     );
 
     _this.config.onLoad.call(_this);
-    window.addEventListener("resize", _this.echarts.resize);
+    window.addEventListener("resize", () => {
+      requestAnimationFrame(_this.echarts.resize);
+    });
   }
 
   /**
