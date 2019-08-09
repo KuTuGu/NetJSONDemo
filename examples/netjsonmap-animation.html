@@ -34,9 +34,13 @@
               center: [34.86, 112.5],
               zoom: 6,
             },
-            mapTileConfig: ["http://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineStreetPurplishBlue/MapServer/tile/{z}/{y}/{x}", {
-                minZoom: 0.25, 
-                maxZoom: 18,
+            mapTileConfig: [{
+                label: "Blue Street",
+                urlTemplate: "http://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineStreetPurplishBlue/MapServer/tile/{z}/{y}/{x}",
+                options: {
+                    minZoom: 0.25, 
+                    maxZoom: 18,
+                }
             }],
 
             // Convert to internal json format
@@ -50,7 +54,7 @@
             },
             
             // Map lines configuration
-            mapLineConfig: [{
+            mapLinkConfig: [{
                 type: "lines",
                 zlevel: 1,
                 // Define track point effects

@@ -27,9 +27,13 @@
                     offset: [0, -10],
                 }
             },
-            mapTileConfig: ["http://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineStreetPurplishBlue/MapServer/tile/{z}/{y}/{x}", {
-                minZoom: 3, 
-                maxZoom: 8,
+            mapTileConfig: [{
+                label: "Blue Street",
+                urlTemplate: "http://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineStreetPurplishBlue/MapServer/tile/{z}/{y}/{x}",
+                options: {
+                    minZoom: 0.25, 
+                    maxZoom: 18,
+                }
             }],
             mapOptions: {
                 center: [48.577, 18.539],
