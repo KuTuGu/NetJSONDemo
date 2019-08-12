@@ -313,6 +313,46 @@ class NetJSONGraphUtil {
 
     return html;
   }
+
+  /**
+   * @function
+   * @name showLoading
+   *
+   * @this {object}      netjsongraph
+   *
+   * @return {object}    html dom
+   */
+
+  showLoading() {
+    let loadingContainer = document.createElement("div");
+    loadingContainer.setAttribute("id", "loadingContainer");
+    loadingContainer.innerHTML = `
+      <div class="loadingSprite" id="loadingSprite_three"></div>
+      <div class="loadingSprite" id="loadingSprite_two"></div>
+      <div class="loadingSprite" id="loadingSprite_one"></div>
+    `;
+
+    this.el.appendChild(loadingContainer);
+
+    return loadingContainer;
+  }
+
+  /**
+   * @function
+   * @name hideLoading
+   *
+   * @this {object}      netjsongraph
+   *
+   * @return {object}    html dom
+   */
+
+  hideLoading() {
+    let loadingContainer = document.getElementById("loadingContainer");
+
+    this.el.removeChild(loadingContainer);
+
+    return loadingContainer;
+  }
 }
 
 export default NetJSONGraphUtil;

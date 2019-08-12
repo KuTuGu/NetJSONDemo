@@ -62,3 +62,50 @@ html, body{
     overflow: hidden; 
     z-index: 0;
 }
+
+#loadingContainer{
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 100%;
+    z-index: 100;
+    /* background-color: red; */
+}
+.loadingSprite{
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent red;
+    border-radius: 50%;
+    animation: animate 2s infinite;
+}
+
+#loadingSprite_one{
+    width: 30px;
+    height: 30px;
+}
+#loadingSprite_two{
+    width: 50px;
+    height: 50px;
+    animation-delay: 0.2s;
+}
+#loadingSprite_three{
+    width: 70px;
+    height: 70px;
+    animation-delay: 0.4s;
+}
+
+
+@keyframes animate {
+    50% {
+        transform: translate(-50%, -50%) rotate(180deg);
+    }
+
+    100% {
+        transform: translate(-50%, -50%) rotate(0deg);
+    }
+}
