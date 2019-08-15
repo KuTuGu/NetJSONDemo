@@ -317,6 +317,7 @@ class NetJSONGraphUtil {
   /**
    * @function
    * @name showLoading
+   * display loading animation
    *
    * @this {object}      netjsongraph
    *
@@ -327,9 +328,10 @@ class NetJSONGraphUtil {
     let loadingContainer = document.createElement("div");
     loadingContainer.setAttribute("id", "loadingContainer");
     loadingContainer.innerHTML = `
-      <div class="loadingSprite" id="loadingSprite_three"></div>
-      <div class="loadingSprite" id="loadingSprite_two"></div>
-      <div class="loadingSprite" id="loadingSprite_one"></div>
+      <div class="loadingElement">
+        <div class="loadingSprite"></div>
+        <p class="loadingTip">Loading...</p>
+      </div>
     `;
 
     this.el.appendChild(loadingContainer);
@@ -340,6 +342,7 @@ class NetJSONGraphUtil {
   /**
    * @function
    * @name hideLoading
+   * cancel loading animation
    *
    * @this {object}      netjsongraph
    *
