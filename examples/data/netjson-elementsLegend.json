@@ -12,7 +12,8 @@
           "label": "FusolabNAS",
           "properties": {
               "hostname": "NAS.nnx",
-              "gateway": false
+              "gateway": false,
+              "time": "2019-04-03T05:06:54.000Z"
           }
       },
       {
@@ -20,7 +21,8 @@
           "label": "Fusolab",
           "properties": {
               "hostname": "fusolab.nnx",
-              "gateway": true
+              "gateway": true,
+              "time": "2019-04-03T04:06:54.000Z"
           }
       },
       {
@@ -28,7 +30,8 @@
           "label": "Clauzroma",
           "properties": {
               "hostname": "clauzroma.nnx",
-              "gateway": false
+              "gateway": false,
+              "time": "2019-04-06T04:06:54.000Z"
           }
       },
       {
@@ -69,7 +72,8 @@
               "lq": 0.900,
               "nlq": 0.497,
               "bitrate": "20 mbit/s",
-              "type": "fiber"
+              "type": "fiber",
+              "time": "2019-04-06T20:06:54.000Z"
           }
       },
       {
@@ -80,7 +84,8 @@
               "lq": 0.940,
               "nlq": 0.797,
               "bitrate": "40 mbit/s",
-              "type": "wireless"
+              "type": "wireless",
+              "time": "2019-04-06T23:06:54.000Z"
           }
       },
       {

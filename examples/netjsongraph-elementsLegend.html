@@ -65,6 +65,7 @@
         <p><span class="link fiber">&nbsp;</span> fiber link</p>
         <p><span class="link vpn">&nbsp;</span> vpn link</p>
     </div>
+    <div id="NetJSONContainer"></div>
     <script type="text/javascript" src="../dist/netjsongraph.min.js"></script>
     <script type="text/javascript">
         const LinkStyle = {
@@ -87,8 +88,16 @@
         };
         const graph = new NetJSONGraph("./data/netjson-elementsLegend.json", {
             render: "graph",
+            el: "NetJSONContainer",
             edgeLength: 300,
             nodeSize: 30,
+            graphConfig: {
+                force: {
+                    gravity: 0.1,
+                    edgeLength: [80, 100],
+                    repulsion: 2000
+                },
+            },
             linkStyleProperty: link => {
                 return Object.assign({
                     width: 10,

@@ -43,9 +43,18 @@ netjsongraph.js accepts two arguments.
             location ? : {
                 lng: Float,
                 lat: Float,
-            }
+            },
+
+            // Define node updated time
+            time ? : String
         }
     }],
+    links: [{
+        properties ? : {
+            // Define link updated time
+            time ? : String
+        }
+    }]
     flatNodes ? : {
         <node id>: node Object
     }  
