@@ -26,6 +26,9 @@ graph.setConfig({
   onRender: function() {
     return this.config;
   },
+  onUpdate: function() {
+    return this.config;
+  },
   onLoad: function() {
     return this.config;
   },

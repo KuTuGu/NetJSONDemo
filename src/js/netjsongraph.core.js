@@ -77,7 +77,8 @@ class NetJSONGraph {
             this
           );
         } else {
-          this.utils._overrideData(JSONData, this);
+          this.data = JSONData;
+          this.utils.NetJSONRender();
         }
       })
       .catch(error => {
