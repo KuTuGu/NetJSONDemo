@@ -56,7 +56,6 @@
 
             onLoad: function presentIndoormap(){
                 let netjsonmap = this.leaflet,
-                    echarts = this.echarts,
                     image = new Image();
                     
                 image.src = "./data/indoormap.jpg";
@@ -74,7 +73,7 @@
 
                     L.imageOverlay(image, bounds).addTo(netjsonmap);
                     
-                    echarts.hideLoading();
+                    this.utils.hideLoading();
                 }
             }
         })
