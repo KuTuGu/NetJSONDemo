@@ -59,6 +59,20 @@ class NetJSONGraph {
 
             return this.config;
           },
+
+          /**
+           * @function
+           * @name onUpdate
+           * Callback function executed when data update.
+           *
+           * @this  {object}          The instantiated object of NetJSONGraph
+           *
+           * @return {object}         this.config
+           */
+          onUpdate: function() {
+            return this.config;
+          },
+
           /**
            * @function
            * @name onLoad
