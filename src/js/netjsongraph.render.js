@@ -228,13 +228,6 @@ class NetJSONGraphRender {
     });
 
     let series = [
-      ...configs.mapLinkConfig.map(lineConfig =>
-        Object.assign(lineConfig, {
-          type: "lines",
-          coordinateSystem: "leaflet",
-          data: linesData
-        })
-      ),
       Object.assign(configs.mapNodeConfig, {
         type:
           configs.mapNodeConfig.type === "effectScatter"
@@ -242,7 +235,14 @@ class NetJSONGraphRender {
             : "scatter",
         coordinateSystem: "leaflet",
         data: nodesData
-      })
+      }),
+      ...configs.mapLinkConfig.map(lineConfig =>
+        Object.assign(lineConfig, {
+          type: "lines",
+          coordinateSystem: "leaflet",
+          data: linesData
+        })
+      )
     ];
 
     return {

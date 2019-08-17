@@ -58,6 +58,7 @@ class NetJSONGraph {
       .JSONParamParse(this.JSONParam)
       .then(JSONData => {
         this.config.prepareData.call(this, JSONData);
+        this.data = JSONData;
 
         (function addNodeLinkOverlay(_this) {
           let nodeLinkOverlay = document.createElement("div");
@@ -66,7 +67,7 @@ class NetJSONGraph {
         })(this);
 
         if (this.config.metadata) {
-          this.el.appendChild(this.utils.NetJSONMetadata(JSONData));
+          this.el.appendChild(this.utils.NetJSONMetadata.call(this));
         }
 
         if (this.config.dealDataByWorker) {
@@ -76,8 +77,7 @@ class NetJSONGraph {
             this
           );
         } else {
-          this.data = JSONData;
-          this.utils.NetJSONRender();
+          this.utils._overrideData(JSONData, this);
         }
       })
       .catch(error => {
