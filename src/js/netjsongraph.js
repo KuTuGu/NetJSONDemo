@@ -29,6 +29,7 @@ class NetJSONGraph {
       NetJSONGraphUpdate.prototype
     );
     graph.utils = Object.assign(new NetJSONGraphRender(), graph.utils);
+    graph.event = graph.utils.createEvent();
     graph.setConfig(
       Object.assign(
         {

@@ -406,6 +406,31 @@ class NetJSONGraphUtil {
 
     return loadingContainer;
   }
+
+  createEvent() {
+    const events = new Map(),
+      events_once = new Map();
+    return {
+      on(key, ...res) {
+        events.set(key, [...(events.get(key) || []), ...res]);
+      },
+      once(key, ...res) {
+        events_once.set(key, [...(events_once.get(key) || []), ...res]);
+      },
+      emit(key) {
+        const funcs = events.get(key) || [],
+          funcs_once = events_once.get(key) || [],
+          res = funcs.map(func => func()),
+          res_once = funcs_once.map(func => func());
+        // events_once.delete(key);
+        return [...res, ...res_once];
+      },
+      delete(key) {
+        events.delete(key);
+        events_once.delete(key);
+      }
+    };
+  }
 }
 
 export default NetJSONGraphUtil;
