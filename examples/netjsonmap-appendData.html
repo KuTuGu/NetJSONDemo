@@ -69,27 +69,17 @@
                         preZoom = baseMap.getZoom();
                     })
                     baseMap.on("zoomend", () => {
-                        let curZoom = baseMap.getZoom(),
-                            echarts = this.echarts,
-                            curCenter = baseMap.getCenter();
-                        if(preZoom !== curZoom){
-                            // Reset map center and zoom
-                            this.setConfig({
-                                mapCenter: [curCenter.lat, curCenter.lng],
-                                mapZoom: curZoom,
-                            })
+                        let curZoom = baseMap.getZoom();
+                        if(preZoom !== curZoom && tilesMap[curZoom]){
+                            // append data function
+                            this.utils.JSONDataUpdate.call(this, folderName + tilesMap[curZoom], false);
 
-                            if(tilesMap[curZoom]){
-                                // append data function
-                                this.utils.JSONDataUpdate.call(this, folderName + tilesMap[curZoom], false);
-
-                                Reflect.deleteProperty(tilesMap, curZoom)
-                            }
+                            Reflect.deleteProperty(tilesMap, curZoom)
                         }
                     })
 
                     this.utils.hideLoading();
-                }
+                    console.log(this);}
             });
         
         map.render();
