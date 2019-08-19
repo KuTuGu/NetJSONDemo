@@ -93,7 +93,7 @@ describe('NetJSONGraph Specification', () => {
     expect(graph).toBeInstanceOf(NetJSONGraph);
 
     expect(graph.el).toBeInstanceOf(HTMLElement);
-    expect(graph.JSONParam).toBe(JSONFILE);
+    expect(graph.JSONParam).toEqual([JSONFILE,]);
     expect(graph.config).toBeInstanceOf(Object);
     expect(graph.utils).toBeInstanceOf(Object);
     expect(graph.setConfig).toBeInstanceOf(Function);
