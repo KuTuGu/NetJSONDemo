@@ -115,10 +115,12 @@ class NetJSONGraphUpdate extends NetJSONGraphUtil {
         function _update() {
           // override data.
           if (override) {
+            _this.JSONParam = [Data];
             _this.utils._overrideData(JSONData, _this);
           }
           // append data.
           else {
+            _this.JSONParam.push(Data);
             _this.utils._appendData(JSONData, _this);
           }
           // update metadata
@@ -130,35 +132,6 @@ class NetJSONGraphUpdate extends NetJSONGraphUtil {
       });
   }
 
-  /**
-   * @function
-   * @name _appendData
-   *
-   * Add new data after render. Can only be used for map render !
-   * Internal use. Recommend to use `JSONDateUpdate` directly.
-   * @param  {object}         JSONData   Data
-   * @param  {object}         _this      NetJSONGraph object
-   *
-   */
-  _appendData(JSONData, _this) {
-    if (_this.config.render !== _this.utils.mapRender) {
-      console.error("AppendData function can only be used for map render!");
-      return;
-    }
-    const opts = _this.utils.generateMapOption(JSONData, _this);
-    opts.series.map((obj, index) => {
-      _this.echarts.appendData({
-        seriesIndex: index,
-        data: obj.data
-      });
-    });
-    const nodes = _this.data.nodes.concat(JSONData.nodes),
-      links = _this.data.links.concat(JSONData.links);
-    Object.assign(_this.data, JSONData, {
-      nodes,
-      links
-    });
-  }
   /**
    * @function
    * @name _overrideData

@@ -273,9 +273,10 @@ class NetJSONGraphRender {
     );
 
     _this.config.onLoad.call(_this);
-    window.addEventListener("resize", () => {
-      requestAnimationFrame(_this.echarts.resize);
-    });
+    _this.event.emit("renderArray");
+    window.onresize = () => {
+      _this.echarts.resize();
+    };
   }
 
   /**
@@ -300,6 +301,38 @@ class NetJSONGraphRender {
 
     _this.leaflet = _this.echarts._api.getCoordinateSystems()[0].getLeaflet();
 
+    _this.config.onLoad.call(_this);
+    _this.event.emit("renderArray");
+  }
+
+  /**
+   * @function
+   * @name _appendData
+   *
+   * Add new data after render. Can only be used for map render !
+   * Internal use. Recommend to use `JSONDateUpdate` directly.
+   * @param  {object}         JSONData   Data
+   * @param  {object}         _this      NetJSONGraph object
+   *
+   */
+  _appendData(JSONData, _this) {
+    if (_this.config.render !== _this.utils.mapRender) {
+      console.error("AppendData function can only be used for map render!");
+      return;
+    }
+    const opts = _this.utils.generateMapOption(JSONData, _this);
+    opts.series.map((obj, index) => {
+      _this.echarts.appendData({
+        seriesIndex: index,
+        data: obj.data
+      });
+    });
+    const nodes = _this.data.nodes.concat(JSONData.nodes),
+      links = _this.data.links.concat(JSONData.links);
+    Object.assign(_this.data, JSONData, {
+      nodes,
+      links
+    });
     _this.config.onLoad.call(_this);
   }
 }
