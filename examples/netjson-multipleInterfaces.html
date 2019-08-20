@@ -11,7 +11,6 @@
     <script type="text/javascript" src="../dist/netjsongraph.min.js"></script>
     <script type="text/javascript">
         const graph = new NetJSONGraph("./data/netjson-multipleInterfaces.json", {
-            render: "graph",
             // Asynchronous processing of incoming data formats using WebWorker file.
             dealDataByWorker: "../src/js/netjsonWorker.js",
         });

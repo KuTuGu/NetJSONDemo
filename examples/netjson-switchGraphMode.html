@@ -20,20 +20,25 @@
     <script type="text/javascript" src="../dist/netjsongraph.min.js"></script>
     <script type="text/javascript">
         const graph = new NetJSONGraph("./data/netjsonmap.json", {
-            render: "graph",
+            render: "map",
             mapNodeConfig: {
                 label: {
                     color: "white",
                     offset: [0, -10],
                 }
             },
-            mapTileConfig: ["http://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineStreetPurplishBlue/MapServer/tile/{z}/{y}/{x}", {
-                minZoom: 0.25, 
-                maxZoom: 18,
+            mapTileConfig: [{
+                label: "Blue Street",
+                urlTemplate: "http://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineStreetPurplishBlue/MapServer/tile/{z}/{y}/{x}",
+                options: {
+                    minZoom: 0.25, 
+                    maxZoom: 18,
+                }
             }],
-            mapCenter: [46.86764405052012, 19.675998687744144],
-            mapZoom: 6,
-
+            mapOptions: {
+                center: [46.86764405052012, 19.675998687744144],
+                zoom: 6,
+            },
             // Convert to internal json format
             prepareData: data => {
                 data.nodes.map(node => {
@@ -43,11 +48,14 @@
                     })
                 })
             },
+
+            onLoad: function(){
+                switchGraphMode(this);
+                this.utils.hideLoading();
+            }
         });
         
         graph.render();
-
-        switchGraphMode(graph);
 
         /**
          * @function
@@ -61,7 +69,8 @@
 
         function switchGraphMode(_this){
             let selectIconContainer = document.createElement("div"),
-                iconEye = document.createElement("span");
+                iconEye = document.createElement("span"),
+                tilesContainer = _this.leaflet.getPanes().tilePane;
             iconEye.setAttribute("class", "iconfont icon-eye");
             selectIconContainer.setAttribute("class", "njg-selectIcon");
             selectIconContainer.appendChild(iconEye);
@@ -70,27 +79,13 @@
             iconEye.onclick = () => {
                 if(_this.config.render === _this.utils.mapRender){
                     _this.config.render = _this.utils.graphRender;
-                    // reDraw
-                    _this.echarts.dispose();
-                    const graph = new NetJSONGraph(_this.data, {
-                        ..._this.config,
-                        el: _this.el,
-                        echartsOption: _this.utils.deepMergeObj(_this.config.echartsOption, {
-                            toolbox: {
-                                show: true,
-                            }
-                        }),
-                        onLoad: function(){
-                            switchGraphMode(this);
-                            this.echarts.hideLoading();
-                        },
-                    });
-                    graph.render();  
+                    tilesContainer.style.visibility = "hidden";
                 }
                 else{
                     _this.config.render = _this.utils.mapRender;
-                    _this.utils.NetJSONRender();
+                    tilesContainer.style.visibility = "visible";
                 }
+                _this.config.render(_this.data, _this);
             }
 
             return selectIconContainer;

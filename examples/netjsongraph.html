@@ -10,9 +10,7 @@
 <body>
     <script type="text/javascript" src="../dist/netjsongraph.min.js"></script>
     <script type="text/javascript">
-        const graph = new NetJSONGraph("./data/netjsonmap.json", {
-            render: "graph",
-        });
+        const graph = new NetJSONGraph(["./data/netjsonAppendData/1.json", "./data/netjsonAppendData/2.json", "./data/netjsonAppendData/3.json"]);
 
         graph.render();
     </script>
