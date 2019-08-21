@@ -10,6 +10,11 @@
 <body>
     <script type="text/javascript" src="../dist/netjsongraph.min.js"></script>
     <script type="text/javascript">
+        /*
+            The demo is used to show the use of the `dataParse` function.
+            You can set the node or link property value `time`, we will call this function to parse the string in the element details defaultly.
+            Of course you can also call directly.
+        */
         // `graph` render defaultly.
         const graph = new NetJSONGraph("./data/netjsonmap.json", {
             // Convert to internal json format，add `time` field.

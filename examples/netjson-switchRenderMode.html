@@ -10,6 +10,9 @@
 <body>
     <script type="text/javascript" src="../dist/netjsongraph.min.js"></script>
     <script type="text/javascript">
+        /*
+            The demo is used to show how to switch the netjsongraph render mode -- `svg` or `canvas`.
+        */
         const graph = new NetJSONGraph("./data/netjsonmap.json", {
             onLoad: function(){
                 switchRenderMode(this);

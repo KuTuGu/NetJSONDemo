@@ -10,6 +10,11 @@
 <body>
     <script type="text/javascript" src="../dist/netjsongraph.min.js"></script>
     <script type="text/javascript">
+        /*
+            The demo is used to show the use of the `searchElements` function.
+            For test, you can input `test` and click the `search` button.
+            See the following comments for details.
+        */
         // `graph` render defaultly.
         const graph = new NetJSONGraph("./data/netjsonmap.json");
         
@@ -22,6 +27,7 @@
                 /*
                     Pass in the url to listen to, and save the returned function.
                     Please ensure that the return value of the api is the specified json format.
+                    Here we override old data with default parameters.
                 */
                 searchFunc = _this.utils.searchElements.call(_this, "https://ee3bdf59-d14c-4280-b514-52bd3dfc2c17.mock.pstmn.io/?search=");
 

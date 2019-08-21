@@ -20,6 +20,11 @@
 <body>
     <script type="text/javascript" src="../dist/netjsongraph.min.js"></script>
     <script>
+        /*
+            The demo is used to show how to set indoor map.
+            Mainly the operation of leaflet.
+            See `onLoad` below for details.
+        */
         const graph = new NetJSONGraph("./data/netjsonmap-indoormap.json", {
             render: "map",
             mapNodeConfig: {

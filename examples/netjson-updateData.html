@@ -11,6 +11,15 @@
     <script type="text/javascript" src="../lib/js/socket.io.js"></script>
     <script type="text/javascript" src="../dist/netjsongraph.min.js"></script>
     <script type="text/javascript">
+        /*
+            The demo is used to show how to use the `JSONDataUpdate` function to update data.
+            In this example we use socket.io to listen for server messages.
+            Adopted the default parameters of function -- 
+            overrride old data and deal with the new data with the processing function set in config.
+            See other examples：
+            netjsonmap-appendData.html: It chooses append data.
+            netjsonmap-nodeTiles.html: override data by different zoom value.
+        */
         // `graph` render defaultly.
         const graph = new NetJSONGraph("./data/netjsonmap.json");
         
