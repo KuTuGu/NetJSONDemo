@@ -27,6 +27,7 @@
                     offset: [0, -10],
                 }
             },
+            // set map tiles config, can set multiple values.
             mapTileConfig: [{
                 label: "Blue Street",
                 urlTemplate: "http://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineStreetPurplishBlue/MapServer/tile/{z}/{y}/{x}",
@@ -35,6 +36,7 @@
                     maxZoom: 18,
                 }
             }],
+            // set map initial state.
             mapOptions: {
                 center: [48.577, 18.539],
                 zoom: 6,
@@ -70,7 +72,7 @@
                             netjsonmap.removeLayer(layer);
                         }
                     });
-
+                    // add indoormap image
                     L.imageOverlay(image, bounds).addTo(netjsonmap);
                     
                     this.utils.hideLoading();

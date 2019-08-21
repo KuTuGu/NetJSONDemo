@@ -27,6 +27,7 @@
                     offset: [0, -10],
                 }
             },
+            // set map tiles config, can set multiple values.
             mapTileConfig: [{
                 label: "Blue Street",
                 urlTemplate: "http://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineStreetPurplishBlue/MapServer/tile/{z}/{y}/{x}",
@@ -35,6 +36,7 @@
                     maxZoom: 18,
                 }
             }],
+            // set map initial state.
             mapOptions: {
                 center: [46.86764405052012, 19.675998687744144],
                 zoom: 6,
@@ -48,6 +50,7 @@
             prepareData: function(data){
                 let southWest = [180, 180], northEast = [-180, -180];
 
+                // get the rectangle coordinate formed by nodes
                 data.nodes.map(node => {
                     node.label = node.name;
                     node.properties = Object.assign(node.properties || {}, {
@@ -80,6 +83,7 @@
                     
                 image.src = "./data/indoormap.jpg";
                 image.onload = () => {
+                    // set image position according to the rectangle coordinate.
                     let swPoint = netjsonmap.latLngToLayerPoint(this.config.mapPosition.southWest),
                         nePoint = netjsonmap.latLngToLayerPoint(this.config.mapPosition.northEast),
                         nodeAreaRatio = (nePoint.x - swPoint.x) / (swPoint.y - nePoint.y),

@@ -27,6 +27,7 @@
                     offset: [0, -10],
                 }
             },
+            // set map tiles config, can set multiple values.
             mapTileConfig: [{
                 label: "Blue Street",
                 urlTemplate: "http://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineStreetPurplishBlue/MapServer/tile/{z}/{y}/{x}",
@@ -35,6 +36,7 @@
                     maxZoom: 18,
                 }
             }],
+            // set map initial state.
             mapOptions: {
                 center: [46.86764405052012, 19.675998687744144],
                 zoom: 6,
@@ -69,8 +71,7 @@
 
         function switchGraphMode(_this){
             let selectIconContainer = document.createElement("div"),
-                iconEye = document.createElement("span"),
-                tilesContainer = _this.leaflet.getPanes().tilePane;
+                iconEye = document.createElement("span");
             iconEye.setAttribute("class", "iconfont icon-eye");
             selectIconContainer.setAttribute("class", "njg-selectIcon");
             selectIconContainer.appendChild(iconEye);
@@ -79,13 +80,19 @@
             iconEye.onclick = () => {
                 if(_this.config.render === _this.utils.mapRender){
                     _this.config.render = _this.utils.graphRender;
-                    tilesContainer.style.visibility = "hidden";
+                    // Poor performance, not recommended.
+                    // reDraw
+                    _this.echarts.dispose();
+                    const graph = new NetJSONGraph(_this.data, {
+                        ..._this.config,
+                        el: _this.el,
+                    });
+                    graph.render();
                 }
                 else{
                     _this.config.render = _this.utils.mapRender;
-                    tilesContainer.style.visibility = "visible";
+                    _this.config.render(_this.data, _this);
                 }
-                _this.config.render(_this.data, _this);
             }
 
             return selectIconContainer;

@@ -10,8 +10,9 @@
 <body>
     <script type="text/javascript" src="../dist/netjsongraph.min.js"></script>
     <script type="text/javascript">
+        // `graph` render defaultly.
         const graph = new NetJSONGraph("./data/netjsonmap.json", {
-            // Convert to internal json format
+            // Convert to internal json format，add `time` field.
             prepareData: data => {
                 data.nodes.map(node => {
                     node.label = node.name;
@@ -29,6 +30,7 @@
 
         (function addDateParse(_this){
             const dateNode = document.createElement("span"),
+              // Try to call the function directly.
               // The exec result must be [date, year, month, day, hour, minute, second, millisecond?]
               dateResult = _this.utils.dateParse({
                 dateString: "2019-04-03T05:06:54.000Z",

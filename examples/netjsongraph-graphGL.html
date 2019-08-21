@@ -10,6 +10,7 @@
 <body>
     <script type="text/javascript" src="../dist/netjsongraph.min.js"></script>
     <script type="text/javascript">
+        // `graph` render defaultly.
         const graph = new NetJSONGraph("./data/netjsongraph-graphGL.json", {
             echartsOption: {
                 backgroundColor: '#000',
@@ -42,6 +43,7 @@
                         width: 4
                     }
                 },
+                // set force layout params
                 forceAtlas2: {
                     steps: 5,
                     stopThreshold: 20,
@@ -49,7 +51,6 @@
                     edgeWeight: [0.2, 1],
                     gravity: 5,
                     edgeWeightInfluence: 0,
-                    // preventOverlap: true
                 }
             },
             nodeStyleProperty: {

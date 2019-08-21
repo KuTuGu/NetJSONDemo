@@ -26,6 +26,7 @@
                     offset: [0, -10],
                 }
             },
+            // set multiple tiles config, can change them dynamically.
             mapTileConfig: [{
                 label: "Blue Street",
                 urlTemplate: "http://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineStreetPurplishBlue/MapServer/tile/{z}/{y}/{x}",
@@ -38,6 +39,7 @@
                 urlTemplate: "https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png",
                 options: {}
             }],
+            // set map initial state.
             mapOptions: {
                 center: [46.86764405052012, 19.675998687744144],
                 zoom: 6,

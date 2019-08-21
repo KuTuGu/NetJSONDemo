@@ -10,6 +10,7 @@
 <body>
     <script type="text/javascript" src="../dist/netjsongraph.min.js"></script>
     <script type="text/javascript">
+        // `graph` render defaultly.
         const graph = new NetJSONGraph("./data/netjsongraph-foldNodes.json", {
             dealDataByWorker: "../src/js/netjsonWorker.js",
             echartsOption: {
@@ -35,16 +36,17 @@
                         category: node.category
                     })
                 })
-            }
-        });
+            },
 
-        graph.setConfig({
-            onClickElement: onClickElement.bind(graph),
+            // re-write click element function.
+            onClickElement: function(type, data){
+                clickElement.call(this, type, data);
+            }
         });
 
         graph.render();
 
-        function onClickElement(type, data){
+        function clickElement(type, data){
             // present element info overlay
             let nodeLinkOverlay = document.getElementsByClassName("njg-overlay")[0];
             
@@ -72,11 +74,14 @@
             if(type === "node" && data.childNodes){
                 let JSONData = this.data;
 
+                // Detect whether expanded.
                 if(!data._expanded){
+                    // Traverse child nodes, add them to the level with father.
                     data.childNodes.map(child => {
                         // The `flatNodes` attribute is obtained after processed by `dealDataByWorker`.
                         JSONData.flatNodes[child.id] = child;
                         JSONData.nodes.push(child);
+                        // Add links
                         JSONData.links.push({
                             source: data.id,
                             target: child.id
@@ -87,6 +92,7 @@
                     JSONData.flatNodes[data.id]._expanded = true;
                 }
                 else{
+                    // delete expanded nodes
                     data.childNodes.map(child => {
                         let node = JSONData.flatNodes[child.id],
                             index = JSONData.nodes.indexOf(node);

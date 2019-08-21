@@ -11,6 +11,7 @@
     <script type="text/javascript" src="../lib/js/socket.io.js"></script>
     <script type="text/javascript" src="../dist/netjsongraph.min.js"></script>
     <script type="text/javascript">
+        // `graph` render defaultly.
         const graph = new NetJSONGraph("./data/netjsonmap.json");
         
         graph.render();
@@ -23,7 +24,8 @@
         socket.on("disconnect", function() {
           console.log("client disconnected.");
         });
-        // Self-monitoring server， re-render when the data changes.
+        // Please open the local server first at `/examples/data/netjsonnode` folder
+        // Update view when the data changes. override old data defaultly.
         socket.on("netjsonChange", graph.utils.JSONDataUpdate.bind(graph));
     </script>
 </html>

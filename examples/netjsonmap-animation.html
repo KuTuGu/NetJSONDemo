@@ -30,10 +30,12 @@
                     }
                 },
             },
+            // set map initial state.
             mapOptions: {
               center: [34.86, 112.5],
               zoom: 6,
             },
+            // set map tiles config, can set multiple values.
             mapTileConfig: [{
                 label: "Blue Street",
                 urlTemplate: "http://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineStreetPurplishBlue/MapServer/tile/{z}/{y}/{x}",
@@ -76,6 +78,7 @@
                     }
                 },
             }, {
+                // set two level lines. 
                 zlevel: 2,
                 effect: {
                     show: true,
