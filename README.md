@@ -115,6 +115,7 @@ This is just a demo, you can also customize other events to trigger data changes
 
 If you want to add search elements function, you just need to pass the url as param to `searchElements`, which will return a function `searchFunc`.
 Then you just need to obtain the value input, and pass it to the `searchFunc`.
+`searchFunc` is similar to JSONDataUpdate, you can also set `appendData` and `isRaw` params according to different conditions.
 
 The view will change if the value is valid, and you can also click the back button of browser to go back.
 
